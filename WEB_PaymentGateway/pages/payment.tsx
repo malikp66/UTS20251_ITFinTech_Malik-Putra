@@ -1,12 +1,13 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { useCart } from "@/contexts/CartContext";
 import { ArrowLeft, CheckCircle2, Clock, ExternalLink, TimerReset, XCircle } from "lucide-react";
 
 type CheckoutDetail = {
@@ -37,8 +38,21 @@ export default function PaymentPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { checkoutId } = router.query as { checkoutId?: string };
+  const { clearCart } = useCart();
   const [state, setState] = useState<FetchState>("idle");
   const [detail, setDetail] = useState<CheckoutDetail | null>(null);
+  const hasClearedCartRef = useRef(false);
+
+  useEffect(() => {
+    hasClearedCartRef.current = false;
+  }, [checkoutId]);
+
+  useEffect(() => {
+    if (detail?.status === "paid" && !hasClearedCartRef.current) {
+      clearCart();
+      hasClearedCartRef.current = true;
+    }
+  }, [detail?.status, clearCart]);
 
   useEffect(() => {
     if (!checkoutId) {

@@ -122,7 +122,7 @@ export default function CheckoutPage() {
           {!ready && (
             <Card className="bg-background/50">
               <CardHeader>
-                <CardTitle>Memuat keranjang...</CardTitle>
+                <CardTitle>Loading keranjang...</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">Silakan tunggu.</p>

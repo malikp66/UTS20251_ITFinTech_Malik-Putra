@@ -270,7 +270,11 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="secondary" className="flex items-center gap-2 md:hidden">
+                  <Button
+                    variant="secondary"
+                    className="flex items-center gap-2 md:hidden"
+                    onClick={handleCheckout}
+                  >
                     <ShoppingCart className="h-4 w-4" />
                     <span>Keranjang</span>
                     {totalItems > 0 && (
