@@ -261,7 +261,7 @@ export default function HomePage() {
                 <Gamepad2 className="h-6 w-6" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold md:text-4xl">malik gaming store</h1>
+                <h1 className="text-3xl font-bold md:text-4xl">Malik Gaming Store</h1>
                 <p className="text-sm text-muted-foreground">
                   Pilih paket top up favorit untuk Mobile Legends, PUBG Mobile, dan Roblox
                 </p>
