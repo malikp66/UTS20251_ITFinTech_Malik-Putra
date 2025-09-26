@@ -296,7 +296,11 @@ export default function HomePage() {
 
               <HoverCard openDelay={120} closeDelay={120}>
                 <HoverCardTrigger asChild>
-                  <Button variant="secondary" className="hidden md:flex items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    className="hidden md:flex items-center gap-2"
+                    onClick={handleCheckout}
+                  >
                     <ShoppingCart className="h-4 w-4" />
                     <span>Keranjang</span>
                     {totalItems > 0 && (
