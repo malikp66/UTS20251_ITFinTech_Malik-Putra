@@ -85,8 +85,9 @@ export default function CheckoutPage() {
       }
       const invoiceJson = (await invoiceResponse.json()) as InvoiceResponse;
       if (typeof window !== "undefined") {
-        window.location.href = invoiceJson.invoiceUrl;
+        window.open(invoiceJson.invoiceUrl, "_blank", "noopener,noreferrer");
       }
+      await router.push(`/payment?checkoutId=${checkoutJson.checkoutId}`);
     } catch (error) {
       console.error(error);
       toast({ title: "Checkout gagal", description: "Periksa kembali data dan coba lagi" });
@@ -110,7 +111,7 @@ export default function CheckoutPage() {
               <div>
                 <h1 className="text-3xl font-bold">Checkout</h1>
                 <p className="text-sm text-muted-foreground">
-                  Review pesanan dan isi data pembeli sebelum lanjut ke pembayaran Xendit.
+                  Review pesanan dan isi data pembeli sebelum lanjut ke pembayaran.
                 </p>
               </div>
             </div>
@@ -272,3 +273,4 @@ export default function CheckoutPage() {
     </>
   );
 }
+
