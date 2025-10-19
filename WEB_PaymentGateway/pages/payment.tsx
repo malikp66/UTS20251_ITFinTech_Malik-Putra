@@ -12,7 +12,7 @@ import { ArrowLeft, CheckCircle2, Clock, ExternalLink, TimerReset, XCircle } fro
 
 type CheckoutDetail = {
   _id: string;
-  status: "pending" | "paid" | "expired";
+  status: "waiting_payment" | "paid" | "expired";
   total: number;
   items: Array<{
     productId: string;

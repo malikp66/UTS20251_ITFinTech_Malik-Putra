@@ -1,11 +1,13 @@
 import { Model, Schema, model, models } from "mongoose";
 
 export type ProductDocument = {
-  game: string;
+  game?: string;
   name: string;
-  sku: string;
+  sku?: string;
   price: number;
-  currency: string;
+  currency?: string;
+  description?: string;
+  stock?: number;
   image?: string;
   active: boolean;
   createdAt: Date;
@@ -14,11 +16,13 @@ export type ProductDocument = {
 
 const ProductSchema = new Schema<ProductDocument>(
   {
-    game: { type: String, required: true, lowercase: true, trim: true },
+    game: { type: String, lowercase: true, trim: true },
     name: { type: String, required: true },
-    sku: { type: String, required: true, unique: true },
+    sku: { type: String, unique: true },
     price: { type: Number, required: true },
-    currency: { type: String, required: true, default: "IDR" },
+    currency: { type: String, default: "IDR" },
+    description: { type: String },
+    stock: { type: Number, default: 0 },
     image: { type: String },
     active: { type: Boolean, default: true }
   },

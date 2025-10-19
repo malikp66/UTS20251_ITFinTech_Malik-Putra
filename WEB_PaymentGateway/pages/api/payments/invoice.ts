@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       raw: invoice
     });
     checkout.paymentId = payment._id;
-    checkout.status = "pending";
+    checkout.status = "waiting_payment";
     await checkout.save();
     return res.status(200).json({ invoiceUrl: payment.externalUrl });
   } catch (error) {

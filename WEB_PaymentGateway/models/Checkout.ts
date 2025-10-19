@@ -9,13 +9,15 @@ export type CheckoutItem = {
 };
 
 export type CheckoutDocument = {
+  userId?: Types.ObjectId;
   items: CheckoutItem[];
   buyer: {
     email: string;
     phone: string;
+    name?: string;
   };
   total: number;
-  status: "pending" | "paid" | "expired";
+  status: "waiting_payment" | "paid" | "expired";
   paymentId?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -23,6 +25,7 @@ export type CheckoutDocument = {
 
 const CheckoutSchema = new Schema<CheckoutDocument>(
   {
+    userId: { type: Schema.Types.ObjectId, ref: "User" },
     items: [
       {
         productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
@@ -34,10 +37,11 @@ const CheckoutSchema = new Schema<CheckoutDocument>(
     ],
     buyer: {
       email: { type: String, required: true },
-      phone: { type: String, required: true }
+      phone: { type: String, required: true },
+      name: { type: String }
     },
     total: { type: Number, required: true },
-    status: { type: String, enum: ["pending", "paid", "expired"], default: "pending" },
+    status: { type: String, enum: ["waiting_payment", "paid", "expired"], default: "waiting_payment" },
     paymentId: { type: Schema.Types.ObjectId, ref: "Payment" }
   },
   { timestamps: true }
