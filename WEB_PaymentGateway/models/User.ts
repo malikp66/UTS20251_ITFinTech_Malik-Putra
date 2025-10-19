@@ -1,32 +1,16 @@
-import { Model, Schema, model, models } from "mongoose";
+import { Schema, models, model } from "mongoose";
 
-export type UserDocument = {
-  name: string;
-  email: string;
-  phone: string;
-  passwordHash: string;
-  role: "admin" | "customer";
-  otpCode?: string;
-  otpExpiry?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-const UserSchema = new Schema<UserDocument>(
+const UserSchema = new Schema(
   {
-    name: { type: String, required: true },
+    name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     phone: { type: String, required: true },
     passwordHash: { type: String, required: true },
-    role: { type: String, enum: ["admin", "customer"], default: "customer" },
-    otpCode: { type: String },
-    otpExpiry: { type: Date }
+    role: { type: String, enum: ["admin", "customer"], default: "customer", index: true },
+    otpCodeHash: { type: String, default: null },
+    otpExpiry: { type: Date, default: null }
   },
   { timestamps: true }
 );
 
-UserSchema.index({ email: 1 }, { unique: true });
-
-const User: Model<UserDocument> = models.User || model<UserDocument>("User", UserSchema);
-
-export default User;
+export default models.User || model("User", UserSchema);

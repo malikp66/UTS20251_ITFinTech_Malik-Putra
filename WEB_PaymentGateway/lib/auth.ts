@@ -1,107 +1,105 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { getCookie, setCookie, clearCookie } from "@/lib/cookies";
-import { signJwt, verifyJwt } from "@/lib/jwt";
-import User, { UserDocument } from "@/models/User";
-import { dbConnect } from "@/lib/db";
+import NextAuth, { type NextAuthConfig } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
+import { dbConnect } from "./db";
+import User from "@/models/User";
+import { generateOtpForUser } from "./auth-service";
 
-export type SessionPayload = {
-  userId: string;
-  email: string;
-  role: "admin" | "customer";
-  name: string;
+export const authOptions: NextAuthConfig = {
+  session: { strategy: "jwt" },
+  providers: [
+    Credentials({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+        role: { label: "Role", type: "text" },
+        otpBypass: { label: "OTP Bypass", type: "text" }
+      },
+      async authorize(credentials) {
+        const email = credentials?.email?.toString().trim().toLowerCase();
+        const password = credentials?.password?.toString() ?? "";
+        const requestedRole = credentials?.role === "admin" ? "admin" : "customer";
+        const otpBypass = credentials?.otpBypass === "true";
+
+        if (!email) {
+          throw new Error("INVALID_CREDENTIALS");
+        }
+
+        await dbConnect();
+        const userDoc = await User.findOne({ email }).lean();
+
+        if (!userDoc) {
+          throw new Error("INVALID_CREDENTIALS");
+        }
+
+        if (requestedRole === "admin") {
+          if (userDoc.role !== "admin") {
+            throw new Error("FORBIDDEN");
+          }
+          const valid = await bcrypt.compare(password, userDoc.passwordHash);
+          if (!valid) {
+            throw new Error("INVALID_CREDENTIALS");
+          }
+
+          return {
+            id: userDoc._id.toString(),
+            email: userDoc.email,
+            name: userDoc.name,
+            role: userDoc.role
+          };
+        }
+
+        // customer flow
+        if (otpBypass) {
+          if (password !== "__otp_flow__") {
+            throw new Error("INVALID_FLOW");
+          }
+          return {
+            id: userDoc._id.toString(),
+            email: userDoc.email,
+            name: userDoc.name,
+            role: userDoc.role
+          };
+        }
+
+        const valid = await bcrypt.compare(password, userDoc.passwordHash);
+        if (!valid || userDoc.role !== "customer") {
+          throw new Error("INVALID_CREDENTIALS");
+        }
+
+        await generateOtpForUser({
+          _id: userDoc._id.toString(),
+          phone: userDoc.phone
+        });
+
+        throw new Error(JSON.stringify({ requiresOtp: true }));
+      }
+    })
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as any).role;
+        token.email = user.email;
+        token.name = user.name;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+      }
+      return session;
+    }
+  },
+  pages: {
+    signIn: "/login"
+  }
 };
 
-type PendingPayload = {
-  userId: string;
-};
-
-export const SESSION_COOKIE_NAME = "app_session";
-export const PENDING_COOKIE_NAME = "app_pending";
-export const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 hari
-export const PENDING_MAX_AGE = 60 * 10; // 10 menit
-
-function getJwtSecret() {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("JWT_SECRET belum dikonfigurasi");
-  }
-  return secret;
-}
-
-export function setSessionCookie(res: NextApiResponse, payload: SessionPayload) {
-  const token = signJwt(payload, getJwtSecret(), SESSION_MAX_AGE);
-  setCookie(res, SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_MAX_AGE
-  });
-  clearCookie(res, PENDING_COOKIE_NAME);
-}
-
-export function setPendingCookie(res: NextApiResponse, payload: PendingPayload) {
-  const token = signJwt(payload, getJwtSecret(), PENDING_MAX_AGE);
-  setCookie(res, PENDING_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: PENDING_MAX_AGE
-  });
-}
-
-export function clearSession(res: NextApiResponse) {
-  clearCookie(res, SESSION_COOKIE_NAME);
-  clearCookie(res, PENDING_COOKIE_NAME);
-}
-
-export function getPendingSession(req: NextApiRequest): PendingPayload | null {
-  const token = getCookie(req, PENDING_COOKIE_NAME);
-  if (!token) {
-    return null;
-  }
-  return verifyJwt<PendingPayload>(token, getJwtSecret());
-}
-
-export function getSession(req: NextApiRequest): SessionPayload | null {
-  const token = getCookie(req, SESSION_COOKIE_NAME);
-  if (!token) {
-    return null;
-  }
-  return verifyJwt<SessionPayload>(token, getJwtSecret());
-}
-
-export async function requireAdmin(req: NextApiRequest, res: NextApiResponse): Promise<UserDocument | null> {
-  const session = getSession(req);
-  if (!session) {
-    res.status(401).json({ error: "Tidak terautentikasi" });
-    return null;
-  }
-  if (session.role !== "admin") {
-    res.status(403).json({ error: "Tidak memiliki akses" });
-    return null;
-  }
-  await dbConnect();
-  const user = await User.findById(session.userId);
-  if (!user) {
-    res.status(401).json({ error: "Sesi tidak valid" });
-    return null;
-  }
-  return user;
-}
-
-export async function requireUser(req: NextApiRequest, res: NextApiResponse): Promise<UserDocument | null> {
-  const session = getSession(req);
-  if (!session) {
-    res.status(401).json({ error: "Tidak terautentikasi" });
-    return null;
-  }
-  await dbConnect();
-  const user = await User.findById(session.userId);
-  if (!user) {
-    res.status(401).json({ error: "Sesi tidak valid" });
-    return null;
-  }
-  return user;
-}
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
