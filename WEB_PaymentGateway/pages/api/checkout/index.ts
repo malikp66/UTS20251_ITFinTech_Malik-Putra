@@ -2,15 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next"
 import { dbConnect } from "@/lib/db"
 import Product from "@/models/Product"
 import Checkout from "@/models/Checkout"
-
-function normalizePhone(input: string) {
-  const d = (input || "").replace(/[^0-9+]/g, "")
-  if (d.startsWith("+62")) return d.slice(1)
-  if (d.startsWith("62")) return d
-  if (d.startsWith("0")) return "62" + d.slice(1)
-  if (d.startsWith("8")) return "62" + d
-  return d
-}
+import { getSession } from "@/lib/auth"
+import { buildCheckoutSummary, sendWhatsAppMessage } from "@/lib/whatsapp"
+import { normalizePhoneNumber } from "@/lib/utils"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).json({ message: "method not allowed" })
@@ -37,12 +31,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const fee = subtotal > 0 ? 2000 : 0
     const total = subtotal + fee
 
+    const session = getSession(req)
     const doc = await Checkout.create({
       items: serverItems,
-      buyer: { email: String(buyer.email), phone: normalizePhone(String(buyer.phone)) },
+      buyer: {
+        email: String(buyer.email),
+        phone: normalizePhoneNumber(String(buyer.phone)),
+        name: buyer.name ? String(buyer.name) : undefined
+      },
+      userId: session?.userId,
       total,
-      status: "pending"
+      status: "waiting_payment",
     })
+
+    await sendWhatsAppMessage(doc.buyer.phone, [
+      "Halo! Pesanan Anda telah kami terima.",
+      buildCheckoutSummary(doc),
+      "",
+      "Silakan selesaikan pembayaran sesuai instruksi pada invoice."
+    ].join("\n"))
 
     return res.status(201).json({ checkoutId: String(doc._id) })
   } catch (e: any) {

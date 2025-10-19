@@ -31,6 +31,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, updateQty, ready } = useCart();
   const { toast } = useToast();
+  const [buyerName, setBuyerName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,8 +45,8 @@ export default function CheckoutPage() {
       toast({ title: "Keranjang kosong", description: "Tambahkan produk sebelum checkout" });
       return;
     }
-    if (!email || !phone) {
-      toast({ title: "Lengkapi data", description: "Email dan nomor HP wajib diisi" });
+    if (!buyerName || !email || !phone) {
+      toast({ title: "Lengkapi data", description: "Nama, email, dan nomor HP wajib diisi" });
       return;
     }
     setIsSubmitting(true);
@@ -58,6 +59,7 @@ export default function CheckoutPage() {
           qty: item.qty
         })),
         buyer: {
+          name: buyerName,
           email,
           phone
         }
@@ -226,6 +228,18 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   <form className="space-y-4" onSubmit={handleSubmit}>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="buyer-name">
+                        Nama pemesan
+                      </label>
+                      <Input
+                        id="buyer-name"
+                        required
+                        value={buyerName}
+                        onChange={event => setBuyerName(event.target.value)}
+                        placeholder="Nama lengkap"
+                      />
+                    </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium" htmlFor="email">
                         Email tujuan invoice

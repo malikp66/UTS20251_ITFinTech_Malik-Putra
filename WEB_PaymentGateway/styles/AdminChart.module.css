@@ -1,0 +1,40 @@
+.chartContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+  min-height: 180px;
+}
+
+.barWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.bar {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 0.5rem;
+  background: linear-gradient(180deg, rgba(96, 165, 250, 0.8), rgba(59, 130, 246, 0.2));
+  position: relative;
+  transition: height 0.3s ease;
+}
+
+.barValue {
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  color: rgba(226, 232, 240, 0.8);
+  white-space: nowrap;
+}
+
+.barLabel {
+  font-size: 0.7rem;
+  color: rgba(148, 163, 184, 0.8);
+}
