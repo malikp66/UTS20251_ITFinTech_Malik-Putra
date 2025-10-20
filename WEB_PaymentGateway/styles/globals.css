@@ -31,6 +31,24 @@ body {
   font-family: "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+body::before {
+  background:
+    radial-gradient(40% 40% at 15% 20%, rgba(99, 102, 241, 0.18), transparent 60%),
+    radial-gradient(35% 35% at 80% 25%, rgba(236, 72, 153, 0.15), transparent 65%),
+    radial-gradient(30% 30% at 50% 80%, rgba(56, 189, 248, 0.12), transparent 70%);
+  opacity: 0.5;
+  filter: blur(90px);
+  animation: neonAura 20s ease-in-out infinite;
+}
+
 * {
   border-color: hsl(var(--border));
 }
@@ -105,5 +123,17 @@ html {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@keyframes neonAura {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translate3d(-3%, -1%, 0) scale(1.08);
+    opacity: 0.9;
   }
 }

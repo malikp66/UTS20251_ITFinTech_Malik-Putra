@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,12 +15,13 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, CheckCircle2, Minus, Phone, Plus, ShoppingCart } from "lucide-react";
 
 type CheckoutResponse = {
-  checkoutId: string;
+  orderId: string;
 };
 
 type InvoiceResponse = {
@@ -31,9 +32,25 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, updateQty, ready } = useCart();
   const { toast } = useToast();
+  const { user, loading: authLoading, ensureAuthenticated } = useAuth();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      ensureAuthenticated();
+      router.replace("/");
+    }
+  }, [authLoading, user, ensureAuthenticated, router]);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      setName(prev => (prev ? prev : user.name));
+      setEmail(prev => (prev ? prev : user.email));
+    }
+  }, [authLoading, user]);
 
   const fee = useMemo(() => (subtotal > 0 ? 2000 : 0), [subtotal]);
   const total = useMemo(() => subtotal + fee, [subtotal, fee]);
@@ -44,8 +61,12 @@ export default function CheckoutPage() {
       toast({ title: "Keranjang kosong", description: "Tambahkan produk sebelum checkout" });
       return;
     }
-    if (!email || !phone) {
-      toast({ title: "Lengkapi data", description: "Email dan nomor HP wajib diisi" });
+    if (!name || !email || !phone) {
+      toast({ title: "Lengkapi data", description: "Nama, email, dan nomor HP wajib diisi" });
+      return;
+    }
+    if (!user) {
+      ensureAuthenticated();
       return;
     }
     setIsSubmitting(true);
@@ -58,6 +79,7 @@ export default function CheckoutPage() {
           qty: item.qty
         })),
         buyer: {
+          name,
           email,
           phone
         }
@@ -66,19 +88,16 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(checkoutPayload)
-      })
+      });
       if (!checkoutResponse.ok) {
-        const err = await checkoutResponse.json().catch(() => ({}))
-        throw new Error(err?.message || "Gagal membuat checkout")
+        const err = await checkoutResponse.json().catch(() => ({} as Record<string, string>));
+        throw new Error(err?.message || "Gagal membuat checkout");
       }
-
       const checkoutJson = (await checkoutResponse.json()) as CheckoutResponse;
       const invoiceResponse = await fetch("/api/payments/invoice", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ checkoutId: checkoutJson.checkoutId })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: checkoutJson.orderId })
       });
       if (!invoiceResponse.ok) {
         throw new Error("Gagal membuat invoice");
@@ -87,7 +106,7 @@ export default function CheckoutPage() {
       if (typeof window !== "undefined") {
         window.open(invoiceJson.invoiceUrl, "_blank", "noopener,noreferrer");
       }
-      await router.push(`/payment?checkoutId=${checkoutJson.checkoutId}`);
+      await router.push(`/payment?orderId=${checkoutJson.orderId}`);
     } catch (error) {
       console.error(error);
       toast({ title: "Checkout gagal", description: "Periksa kembali data dan coba lagi" });
@@ -227,6 +246,18 @@ export default function CheckoutPage() {
                   </div>
                   <form className="space-y-4" onSubmit={handleSubmit}>
                     <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="name">
+                        Nama lengkap
+                      </label>
+                      <Input
+                        id="name"
+                        required
+                        value={name}
+                        onChange={event => setName(event.target.value)}
+                        placeholder="Nama penerima"
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <label className="text-sm font-medium" htmlFor="email">
                         Email tujuan invoice
                       </label>
@@ -273,4 +304,3 @@ export default function CheckoutPage() {
     </>
   );
 }
-

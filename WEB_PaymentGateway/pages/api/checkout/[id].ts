@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import mongoose from "mongoose";
 import { dbConnect } from "@/lib/db";
-import Checkout from "@/models/Checkout";
+import Order from "@/models/Order";
 import Payment from "@/models/Payment";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -11,17 +11,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   const { id } = req.query;
   if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ error: "ID checkout tidak valid" });
+    return res.status(400).json({ error: "ID order tidak valid" });
   }
   try {
     await dbConnect();
-    const checkout = await Checkout.findById(id).lean();
-    if (!checkout) {
-      return res.status(404).json({ error: "Checkout tidak ditemukan" });
+    const order = await Order.findById(id).lean();
+    if (!order) {
+      return res.status(404).json({ error: "Order tidak ditemukan" });
     }
     let payment = null;
-    if (checkout.paymentId) {
-      const paymentDoc = await Payment.findById(checkout.paymentId).lean();
+    if (order.paymentId) {
+      const paymentDoc = await Payment.findById(order.paymentId).lean();
       if (paymentDoc) {
         payment = {
           invoiceId: paymentDoc.invoiceId,
@@ -32,17 +32,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     return res.status(200).json({
       data: {
-        _id: checkout._id.toString(),
-        items: checkout.items.map(item => ({
+        _id: order._id.toString(),
+        items: order.items.map(item => ({
           productId: item.productId.toString(),
           name: item.name,
           price: item.price,
-          qty: item.qty,
+          quantity: item.quantity,
           subtotal: item.subtotal
         })),
-        buyer: checkout.buyer,
-        total: checkout.total,
-        status: checkout.status,
+        buyer: order.buyer,
+        total: order.total,
+        status: order.status,
         payment
       }
     });

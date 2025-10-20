@@ -36,7 +36,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       try {
         const parsed = JSON.parse(saved) as CartItem[];
         setItems(parsed);
-      } catch (error) {
+      } catch {
         window.localStorage.removeItem(STORAGE_KEY);
       }
     }

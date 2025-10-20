@@ -66,6 +66,26 @@ const config: Config = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		keyframes: {
+  			float: {
+  				'0%, 100%': {
+  					transform: 'translateY(0)'
+  				},
+  				'50%': {
+  					transform: 'translateY(-6px)'
+  				}
+  			},
+  			neonGlow: {
+  				'0%, 100%': {
+  					opacity: '0.6',
+  					filter: 'blur(40px)',
+  					transform: 'scale(0.95)'
+  				},
+  				'50%': {
+  					opacity: '0.9',
+  					filter: 'blur(55px)',
+  					transform: 'scale(1.05)'
+  				}
+  			},
   			'accordion-down': {
   				from: {
   					height: '0'
@@ -84,9 +104,11 @@ const config: Config = {
   			}
   		},
   		animation: {
+  			float: 'float 6s ease-in-out infinite',
+  			neonGlow: 'neonGlow 5s ease-in-out infinite',
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
-  		}
+ 		}
   	}
   },
   plugins: [tailwindcssAnimate, require("tailwindcss-animate")]

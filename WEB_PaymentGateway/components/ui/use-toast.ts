@@ -5,11 +5,14 @@ import { ToastActionElement } from "./toast";
 const TOAST_LIMIT = 5;
 const TOAST_REMOVE_DELAY = 1000;
 
+type ToastVariant = "default" | "destructive" | "success";
+
 type ToasterToast = ToastProps & {
   id: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
   action?: ToastActionElement;
+  variant?: ToastVariant;
 };
 
 const actionTypes = {

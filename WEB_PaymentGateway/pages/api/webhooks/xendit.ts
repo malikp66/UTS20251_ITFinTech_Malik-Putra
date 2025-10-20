@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { dbConnect } from "@/lib/db";
 import Payment from "@/models/Payment";
-import Checkout from "@/models/Checkout";
+import Order from "@/models/Order";
+import { sendPaymentSuccessNotification } from "@/lib/whatsapp";
 
 function normalizeStatus(status: string | undefined) {
   const value = status ? status.toUpperCase() : "";
@@ -44,10 +45,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     payment.raw = payload;
     await payment.save();
     if (status === "PAID") {
-      await Checkout.findByIdAndUpdate(payment.checkoutId, { status: "paid" });
+      await Order.findByIdAndUpdate(payment.orderId, { status: "lunas" });
+      await sendPaymentSuccessNotification(payment.orderId.toString());
     }
     if (status === "EXPIRED") {
-      await Checkout.findByIdAndUpdate(payment.checkoutId, { status: "expired" });
+      await Order.findByIdAndUpdate(payment.orderId, { status: "expired" });
     }
     return res.status(200).json({ success: true });
   } catch (error) {

@@ -6,7 +6,7 @@ export type PaymentDocument = {
   externalUrl: string;
   amount: number;
   status: "PENDING" | "PAID" | "EXPIRED";
-  checkoutId: Types.ObjectId;
+  orderId: Types.ObjectId;
   raw: unknown;
   createdAt: Date;
   updatedAt: Date;
@@ -19,7 +19,7 @@ const PaymentSchema = new Schema<PaymentDocument>(
     externalUrl: { type: String, required: true },
     amount: { type: Number, required: true },
     status: { type: String, enum: ["PENDING", "PAID", "EXPIRED"], default: "PENDING" },
-    checkoutId: { type: Schema.Types.ObjectId, ref: "Checkout", required: true },
+    orderId: { type: Schema.Types.ObjectId, ref: "Order", required: true },
     raw: { type: Schema.Types.Mixed }
   },
   { timestamps: true }

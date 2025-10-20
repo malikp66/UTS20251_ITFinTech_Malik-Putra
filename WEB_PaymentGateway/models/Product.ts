@@ -8,19 +8,23 @@ export type ProductDocument = {
   currency: string;
   image?: string;
   active: boolean;
+  description?: string;
+  stock?: number;
   createdAt: Date;
   updatedAt: Date;
 };
 
 const ProductSchema = new Schema<ProductDocument>(
   {
-    game: { type: String, required: true, lowercase: true, trim: true },
+    game: { type: String, lowercase: true, trim: true, default: "general" },
     name: { type: String, required: true },
     sku: { type: String, required: true, unique: true },
     price: { type: Number, required: true },
     currency: { type: String, required: true, default: "IDR" },
     image: { type: String },
-    active: { type: Boolean, default: true }
+    active: { type: Boolean, default: true },
+    description: { type: String },
+    stock: { type: Number, default: 0 }
   },
   { timestamps: true }
 );

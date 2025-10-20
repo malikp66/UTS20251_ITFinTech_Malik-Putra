@@ -10,15 +10,15 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/contexts/CartContext";
 import { ArrowLeft, CheckCircle2, Clock, ExternalLink, TimerReset, XCircle } from "lucide-react";
 
-type CheckoutDetail = {
+type OrderDetail = {
   _id: string;
-  status: "pending" | "paid" | "expired";
+  status: "waiting_payment" | "lunas" | "expired";
   total: number;
   items: Array<{
     productId: string;
     name: string;
     price: number;
-    qty: number;
+    quantity: number;
     subtotal: number;
   }>;
   buyer: {
@@ -37,40 +37,40 @@ type FetchState = "idle" | "loading" | "error" | "success";
 export default function PaymentPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { checkoutId } = router.query as { checkoutId?: string };
+  const { orderId } = router.query as { orderId?: string };
   const { clearCart } = useCart();
   const [state, setState] = useState<FetchState>("idle");
-  const [detail, setDetail] = useState<CheckoutDetail | null>(null);
+  const [detail, setDetail] = useState<OrderDetail | null>(null);
   const hasClearedCartRef = useRef(false);
 
   useEffect(() => {
     hasClearedCartRef.current = false;
-  }, [checkoutId]);
+  }, [orderId]);
 
   useEffect(() => {
-    if (detail?.status === "paid" && !hasClearedCartRef.current) {
+    if (detail?.status === "lunas" && !hasClearedCartRef.current) {
       clearCart();
       hasClearedCartRef.current = true;
     }
   }, [detail?.status, clearCart]);
 
   useEffect(() => {
-    if (!checkoutId) {
+    if (!orderId) {
       return;
     }
     let cancelled = false;
     let interval: NodeJS.Timeout | null = null;
     const load = async () => {
       try {
-        const response = await fetch(`/api/checkout/${checkoutId}`);
+        const response = await fetch(`/api/checkout/${orderId}`);
         if (!response.ok) {
           throw new Error("Gagal memuat status");
         }
         const json = await response.json();
         if (!cancelled) {
-          setDetail(json.data as CheckoutDetail);
+          setDetail(json.data as OrderDetail);
           setState("success");
-          if (json.data.status === "paid" || json.data.status === "expired") {
+          if (json.data.status === "lunas" || json.data.status === "expired") {
             if (interval) {
               clearInterval(interval);
             }
@@ -93,7 +93,7 @@ export default function PaymentPage() {
         clearInterval(interval);
       }
     };
-  }, [checkoutId, toast]);
+  }, [orderId, toast]);
 
   const statusInfo = useMemo(() => {
     if (!detail) {
@@ -103,7 +103,7 @@ export default function PaymentPage() {
         icon: Clock
       };
     }
-    if (detail.status === "paid") {
+    if (detail.status === "lunas") {
       return {
         label: "Lunas",
         variant: "default" as const,
@@ -147,7 +147,7 @@ export default function PaymentPage() {
             <div>
               <h1 className="text-3xl font-bold text-foreground">Status Pembayaran</h1>
               <p className="text-sm text-muted-foreground">
-                Pantau pembayaran invoice Xendit untuk checkout ID {checkoutId ?? "-"}.
+                Pantau pembayaran invoice Xendit untuk order ID {orderId ?? "-"}.
               </p>
             </div>
             <Button variant="secondary" onClick={handleBack}>
@@ -155,10 +155,10 @@ export default function PaymentPage() {
               Kembali ke beranda
             </Button>
           </header>
-          {!checkoutId && (
+          {!orderId && (
             <Card className="bg-background/60">
               <CardHeader>
-                <CardTitle>Checkout ID tidak ditemukan</CardTitle>
+                <CardTitle>Order ID tidak ditemukan</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
@@ -186,7 +186,7 @@ export default function PaymentPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-destructive-foreground">
-                  Pastikan checkout ID valid atau coba lagi beberapa saat lagi.
+                  Pastikan order ID valid atau coba lagi beberapa saat lagi.
                 </p>
               </CardContent>
             </Card>
@@ -199,7 +199,7 @@ export default function PaymentPage() {
                     <StatusIcon className="h-6 w-6 text-primary" />
                     <div className="flex items-center gap-2">
                       <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
-                      <span className="text-xs text-muted-foreground">Checkout ID {detail._id}</span>
+                      <span className="text-xs text-muted-foreground">Order ID {detail._id}</span>
                     </div>
                   </div>
                   <div>
@@ -232,7 +232,7 @@ export default function PaymentPage() {
                               <span className="text-xs text-muted-foreground">{formatCurrency(item.price)} per item</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-center text-sm font-semibold">{item.qty}</TableCell>
+                          <TableCell className="text-center text-sm font-semibold">{item.quantity}</TableCell>
                           <TableCell className="text-right font-semibold">{formatCurrency(item.subtotal)}</TableCell>
                         </TableRow>
                       ))}
@@ -248,14 +248,14 @@ export default function PaymentPage() {
                   <div>
                     <p className="font-semibold text-foreground">Status pembayaran</p>
                     <p className="text-muted-foreground">
-                      {detail.status === "paid"
+                      {detail.status === "lunas"
                         ? "Pembayaran selesai. Top up akan segera diproses."
                         : detail.status === "expired"
                         ? "Invoice kedaluwarsa. Buat pesanan baru untuk melanjutkan."
                         : "Invoice masih menunggu pembayaran. Segera selesaikan sebelum kedaluwarsa."}
                     </p>
                   </div>
-                  {detail.payment?.externalUrl && detail.status !== "paid" && (
+                  {detail.payment?.externalUrl && detail.status !== "lunas" && (
                     <Button className="w-full" variant="secondary" onClick={handleOpenInvoice}>
                       Buka invoice Xendit
                       <ExternalLink className="ml-2 h-4 w-4" />

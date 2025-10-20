@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import mongoose from "mongoose";
 import { dbConnect } from "@/lib/db";
-import Checkout from "@/models/Checkout";
+import Order from "@/models/Order";
 import Payment from "@/models/Payment";
 
 const XENDIT_URL = "https://api.xendit.co/v2/invoices";
@@ -21,20 +21,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: "Konfigurasi Xendit belum lengkap" });
   }
   try {
-    const { checkoutId } = req.body as { checkoutId?: string };
-    if (!checkoutId || !mongoose.Types.ObjectId.isValid(checkoutId)) {
-      return res.status(400).json({ error: "Checkout ID tidak valid" });
+    const { orderId } = req.body as { orderId?: string };
+    if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ error: "Order ID tidak valid" });
     }
     await dbConnect();
-    const checkout = await Checkout.findById(checkoutId);
-    if (!checkout) {
-      return res.status(404).json({ error: "Checkout tidak ditemukan" });
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ error: "Order tidak ditemukan" });
     }
-    if (checkout.status === "paid") {
-      return res.status(400).json({ error: "Checkout sudah dibayar" });
+    if (order.status === "lunas") {
+      return res.status(400).json({ error: "Order sudah dibayar" });
     }
-    if (checkout.paymentId) {
-      const existingPayment = await Payment.findById(checkout.paymentId);
+    if (order.paymentId) {
+      const existingPayment = await Payment.findById(order.paymentId);
       if (existingPayment) {
         if (existingPayment.status === "PAID") {
           return res.status(400).json({ error: "Invoice sudah dibayar" });
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     }
-    const description = `Top up ${checkout.items.map(item => item.name).join(", ")}`;
+    const description = `Top up ${order.items.map(item => item.name).join(", ")}`;
     const response = await fetch(XENDIT_URL, {
       method: "POST",
       headers: {
@@ -52,19 +52,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        external_id: `checkout-${checkout._id.toString()}`,
-        payer_email: checkout.buyer.email,
+        external_id: `order-${order._id.toString()}`,
+        payer_email: order.buyer.email,
         description,
-        amount: checkout.total,
+        amount: order.total,
         currency: "IDR",
-        success_redirect_url: `${siteUrl}/payment?checkoutId=${checkout._id.toString()}`,
-        failure_redirect_url: `${siteUrl}/payment?checkoutId=${checkout._id.toString()}`,
+        success_redirect_url: `${siteUrl}/payment?orderId=${order._id.toString()}`,
+        failure_redirect_url: `${siteUrl}/payment?orderId=${order._id.toString()}`,
         customer: {
-          email: checkout.buyer.email,
-          mobile_number: checkout.buyer.phone
+          email: order.buyer.email,
+          mobile_number: order.buyer.phone
         },
         metadata: {
-          checkoutId: checkout._id.toString()
+          orderId: order._id.toString()
         }
       })
     });
@@ -78,12 +78,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       externalUrl: invoice.invoice_url,
       amount: invoice.amount,
       status: invoice.status ? String(invoice.status).toUpperCase() : "PENDING",
-      checkoutId: checkout._id,
+      orderId: order._id,
       raw: invoice
     });
-    checkout.paymentId = payment._id;
-    checkout.status = "pending";
-    await checkout.save();
+    order.paymentId = payment._id;
+    order.status = "waiting_payment";
+    await order.save();
     return res.status(200).json({ invoiceUrl: payment.externalUrl });
   } catch (error) {
     console.error(error);
