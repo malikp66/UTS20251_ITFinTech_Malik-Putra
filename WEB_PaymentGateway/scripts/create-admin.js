@@ -15,7 +15,7 @@ const [, , emailArg, passwordArg, phoneArg, nameArg] = process.argv;
 
 const email = (emailArg || "").toLowerCase();
 const password = passwordArg;
-const phone = phoneArg;
+const phone = (phoneArg || "").trim();
 const name = nameArg || "Administrator";
 
 if (!email || !password || !phone) {
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, trim: true, lowercase: true, unique: true },
-    phone: { type: String, required: true, trim: true },
+    phone: { type: String, required: true, trim: true, unique: true },
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ["admin", "customer"], default: "customer" },
     otpCode: { type: String },
@@ -44,6 +44,11 @@ async function run() {
   try {
     await mongoose.connect(uri);
     const passwordHash = await bcrypt.hash(password, 10);
+    const phoneOwner = await User.findOne({ phone, email: { $ne: email } });
+    if (phoneOwner) {
+      console.error(`Nomor WhatsApp ${phone} sudah digunakan oleh akun lain (${phoneOwner.email}).`);
+      process.exit(1);
+    }
     const existing = await User.findOne({ email });
 
     if (existing) {

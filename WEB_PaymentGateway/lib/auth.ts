@@ -10,6 +10,7 @@ export type SessionUser = {
   userId: string;
   email: string;
   name: string;
+  phone: string;
   role: UserRole;
 };
 
@@ -68,6 +69,7 @@ export function getSessionFromRequest(req: NextApiRequest): SessionUser | null {
       userId: decoded.userId,
       email: decoded.email,
       name: decoded.name,
+      phone: decoded.phone || "",
       role: decoded.role
     };
   } catch {
@@ -103,6 +105,7 @@ export function getSessionFromCookies(cookieHeader: string | undefined): Session
       userId: decoded.userId,
       email: decoded.email,
       name: decoded.name,
+      phone: decoded.phone || "",
       role: decoded.role
     };
   } catch {

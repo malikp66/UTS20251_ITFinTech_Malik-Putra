@@ -49,6 +49,7 @@ export default function CheckoutPage() {
     if (!authLoading && user) {
       setName(prev => (prev ? prev : user.name));
       setEmail(prev => (prev ? prev : user.email));
+      setPhone(prev => (prev ? prev : user.phone || ""));
     }
   }, [authLoading, user]);
 
@@ -113,6 +114,19 @@ export default function CheckoutPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleUseAccountData = () => {
+    if (!user) {
+      toast({ title: "Belum login", description: "Silakan login untuk menggunakan data akun." });
+      return;
+    }
+
+    console.log("Applying account data:", { name: user.name, email: user.email, phone: user });
+    setName(user.name || "");
+    setEmail(user.email || "");
+    setPhone(user.phone || "");
+    toast({ title: "Data akun diterapkan", description: "Formulir sudah terisi otomatis." });
   };
 
   return (
@@ -246,9 +260,20 @@ export default function CheckoutPage() {
                   </div>
                   <form className="space-y-4" onSubmit={handleSubmit}>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium" htmlFor="name">
-                        Nama lengkap
-                      </label>
+                      <div className="mb-4 flex justify-between items-center">
+                        <label className="text-sm font-medium" htmlFor="name">
+                          Nama lengkap
+                        </label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleUseAccountData}
+                          disabled={!user || authLoading}
+                        >
+                          Gunakan data akun
+                        </Button>
+                      </div>
                       <Input
                         id="name"
                         required

@@ -139,7 +139,7 @@ function CartPanel({ onCheckout }: CartPanelProps) {
             {items.map(item => (
               <div
                 key={item.productId}
-                className="flex items-center justify-between rounded-3xl border border-white/10 bg-black/30 px-3 py-3 transition-colors duration-200 hover:border-primary/40 hover:bg-primary/10"
+                className="flex items-center justify-between rounded-3xl border border-white/10 bg-black/30 px-5 py-5 transition-colors duration-200 hover:border-primary/40 hover:bg-primary/10"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-foreground">{item.name}</p>
@@ -313,7 +313,7 @@ export default function HomePage() {
       </Head>
       <div className="min-h-screen bg-gradient-to-br from-[#070717] via-[#10102a] to-[#1a1840]">
         <div className="container mx-auto px-4 py-10">
-          <header className="relative z-[60] rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_18px_40px_rgba(10,15,45,0.35)] backdrop-blur">
+          <header className="relative z-[40] rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_18px_40px_rgba(10,15,45,0.35)] backdrop-blur">
             <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
               <div className="max-w-2xl space-y-6">
                 <span className="inline-flex items-center gap-2 self-start rounded-3xl border border-white/10 bg-black/20 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
@@ -360,7 +360,7 @@ export default function HomePage() {
                         <User className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-60">
+                    <DropdownMenuContent align="end" className="w-60 p-2 z-50">
                       {user ? (
                         <>
                           <DropdownMenuLabel>
@@ -406,43 +406,31 @@ export default function HomePage() {
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        className="flex items-center gap-2 rounded-3xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:hidden"
-                        onClick={handleCheckout}
-                      >
-                        <ShoppingCart className="h-4 w-4" />
-                        <span>Keranjang</span>
-                        {totalItems > 0 && (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-3xl bg-primary text-xs font-bold text-primary-foreground">
-                            {totalItems}
-                          </span>
-                        )}
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="right">
-                      <SheetHeader>
-                        <SheetTitle>Keranjang</SheetTitle>
-                      </SheetHeader>
-                      <div className="pt-6">
-                        <CartPanel onCheckout={handleCheckout} />
-                      </div>
-                    </SheetContent>
-                  </Sheet>
+                  <Button
+                    variant="secondary"
+                    className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:hidden"
+                    onClick={handleCheckout} // langsung pindah page
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    <span>Keranjang</span>
+                    {totalItems > 0 && (
+                      <span className="flex h-6 w-6 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
+                        {totalItems}
+                      </span>
+                    )}
+                  </Button>
 
                   <HoverCard openDelay={120} closeDelay={120}>
                     <HoverCardTrigger asChild>
                       <Button
                         variant="secondary"
-                        className="hidden items-center gap-2 rounded-3xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:flex"
-                        onClick={handleCheckout}
+                        className="hidden items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:flex"
+                        onClick={handleCheckout} // boleh tetap, tapi HoverCard akan tampil saat hover
                       >
                         <ShoppingCart className="h-4 w-4" />
                         <span>Keranjang</span>
                         {totalItems > 0 && (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-3xl bg-primary text-xs font-bold text-primary-foreground">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
                             {totalItems}
                           </span>
                         )}

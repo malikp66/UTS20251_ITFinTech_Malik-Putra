@@ -23,15 +23,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: message });
     }
     await dbConnect();
-    const existing = await User.findOne({ email: parsed.data.email.toLowerCase() });
+    const email = parsed.data.email.toLowerCase();
+    const phone = parsed.data.phone.trim();
+
+    const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({ error: "Email sudah terdaftar" });
+    }
+    const existingPhone = await User.findOne({ phone });
+    if (existingPhone) {
+      return res.status(409).json({ error: "Nomor WhatsApp sudah terdaftar" });
     }
     const passwordHash = await bcrypt.hash(parsed.data.password, 10);
     await User.create({
       name: parsed.data.name,
-      email: parsed.data.email.toLowerCase(),
-      phone: parsed.data.phone,
+      email,
+      phone,
       passwordHash,
       role: "customer"
     });

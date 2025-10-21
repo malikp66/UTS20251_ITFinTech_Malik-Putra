@@ -108,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (json?.mfaRequired) {
           const emailValue = (json.email as string) || payload.email;
           setOtpEmail(emailValue);
-          setOtpPhone(typeof json.phone === "string" ? json.phone : "");
+          setOtpPhone(typeof json.phone === "string" ? json.phone.trim() : "");
           setModalMode("otp");
           setOtpCountdown(300);
           setModalBusy(false);
@@ -153,7 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const submitOtp = useCallback(
-    async (payload: { email: string; code: string }) => {
+    async (payload: { phone: string; code: string }) => {
       setModalBusy(true);
       try {
         const sanitizedCode = payload.code.replace(/\D/g, "").slice(0, OTP_LENGTH);
@@ -166,10 +166,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setModalBusy(false);
           return;
         }
+        const sanitizedPhone = payload.phone.trim();
+        if (!sanitizedPhone) {
+          toast({
+            title: "Nomor WhatsApp tidak ditemukan",
+            description: "Silakan login ulang untuk menerima OTP baru.",
+            variant: "destructive"
+          });
+          setModalBusy(false);
+          return;
+        }
         const response = await fetch("/api/auth/verify-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: payload.email, code: sanitizedCode })
+          body: JSON.stringify({ phone: sanitizedPhone, code: sanitizedCode })
         });
         const json = await response.json().catch(() => ({}));
         if (!response.ok) {
@@ -276,7 +286,7 @@ type AuthModalsProps = {
   modalBusy: boolean;
   onLogin: (payload: { email: string; password: string }) => Promise<void>;
   onRegister: (payload: { name: string; email: string; phone: string; password: string }) => Promise<void>;
-  onVerifyOtp: (payload: { email: string; code: string }) => Promise<void>;
+  onVerifyOtp: (payload: { phone: string; code: string }) => Promise<void>;
   onClose: () => void;
   setModalBusy: (value: boolean) => void;
   otpCountdown: number | null;
@@ -582,8 +592,8 @@ function AuthModals({
           <DialogFooter className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Button
               className="w-full"
-              disabled={modalBusy || !isOtpReady}
-              onClick={() => void onVerifyOtp({ email: otpEmail || loginEmail, code: otpCode })}
+              disabled={modalBusy || !isOtpReady || !otpPhone}
+              onClick={() => void onVerifyOtp({ phone: otpPhone, code: otpCode })}
             >
               {modalBusy ? "Memverifikasi..." : "Verifikasi"}
             </Button>

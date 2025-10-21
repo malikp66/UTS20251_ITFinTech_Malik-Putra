@@ -6,7 +6,7 @@ import User from "@/models/User";
 import { createSession } from "@/lib/auth";
 
 const verifySchema = z.object({
-  email: z.string().trim().email("Email tidak valid"),
+  phone: z.string().trim().min(8, "Nomor WhatsApp tidak valid"),
   code: z.string().trim().min(4, "Kode OTP tidak valid")
 });
 
@@ -24,7 +24,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   try {
     await dbConnect();
-    const user = await User.findOne({ email: parsed.data.email.toLowerCase() });
+    const normalizedPhone = parsed.data.phone.trim();
+    const user = await User.findOne({ phone: normalizedPhone });
     if (!user || !user.otpCode || !user.otpExpiry) {
       return res.status(400).json({ error: "OTP tidak ditemukan, silakan login ulang" });
     }
@@ -48,10 +49,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     user.otpExpiry = undefined;
     user.otpAttempts = 0;
     await user.save();
+    const sessionPhone = typeof user.phone === "string" ? user.phone.trim() : "";
     const session = {
       userId: user._id.toString(),
       email: user.email,
       name: user.name,
+      phone: sessionPhone,
       role: user.role
     };
     createSession(res, session);

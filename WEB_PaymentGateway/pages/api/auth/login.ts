@@ -41,11 +41,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!validPassword) {
       return res.status(401).json({ error: "Email atau password salah" });
     }
+    const sanitizedPhone = typeof user.phone === "string" ? user.phone.trim() : "";
     if (user.role === "admin") {
       const session = {
         userId: user._id.toString(),
         email: user.email,
         name: user.name,
+        phone: sanitizedPhone,
         role: user.role
       };
       createSession(res, session);
@@ -61,8 +63,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     user.otpExpiry = expiry;
     user.otpAttempts = 0;
     await user.save();
-    await sendOtpMessage(user.phone, code);
-    return res.status(200).json({ mfaRequired: true, email: user.email, phone: user.phone });
+    await sendOtpMessage(sanitizedPhone, code);
+    return res
+      .status(200)
+      .json({ mfaRequired: true, email: user.email, phone: sanitizedPhone });
   } catch (error) {
     console.error("Login error", error);
     return res.status(500).json({ error: "Gagal memproses login" });
