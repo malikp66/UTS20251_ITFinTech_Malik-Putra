@@ -321,7 +321,7 @@ export default function HomePage() {
                   Top-up #1 untuk player kompetitif
                 </span>
                 <div className="flex flex-col gap-5 md:flex-row md:items-center">
-                  <div className="grid h-16 w-16 place-items-center rounded-3xl bg-primary/10 text-primary">
+                  <div className="grid p-6 place-items-center rounded-3xl bg-primary/10 text-primary">
                     <Gamepad2 className="h-8 w-8" />
                   </div>
                   <div>
