@@ -27,7 +27,7 @@ const Toast = React.forwardRef<
   <ToastPrimitive.Root
     ref={ref}
     className={cn(
-      "group relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border border-border bg-background px-6 py-4 shadow-lg transition-all",
+      "group relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-3xl border border-border bg-background px-6 py-4 shadow-lg transition-all",
       className
     )}
     {...props}
@@ -42,7 +42,7 @@ const ToastAction = React.forwardRef<
   <ToastPrimitive.Action
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center rounded-md border border-input bg-transparent px-3 py-1 text-sm font-medium transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      "inline-flex items-center justify-center rounded-3xl border border-input bg-transparent px-3 py-1 text-sm font-medium transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
       className
     )}
     {...props}
@@ -59,7 +59,7 @@ const ToastClose = React.forwardRef<
   <ToastPrimitive.Close
     ref={ref}
     className={cn(
-      "absolute right-2 top-2 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none group-hover:opacity-100",
+      "absolute right-2 top-2 rounded-3xl p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none group-hover:opacity-100",
       className
     )}
     {...props}

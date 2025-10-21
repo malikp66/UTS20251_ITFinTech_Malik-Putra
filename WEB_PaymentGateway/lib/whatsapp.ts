@@ -1,4 +1,5 @@
 import Order, { OrderDocument } from "@/models/Order";
+import { isDevEnv } from "@/lib/env";
 
 const META_WHATSAPP_API_VERSION = process.env.WHATSAPP_API_VERSION || "v17.0";
 
@@ -23,6 +24,10 @@ function canSendMessages() {
 }
 
 export async function sendWhatsAppMessage(to: string, body: string) {
+  if (isDevEnv()) {
+    console.info("[DEV] WhatsApp message bypassed", { to, body });
+    return;
+  }
   if (!canSendMessages()) {
     console.warn("WhatsApp credentials missing. Skipping send.");
     return;

@@ -117,7 +117,7 @@ function CartPanel({ onCheckout }: CartPanelProps) {
           <CardTitle className="text-xl font-semibold">Keranjang</CardTitle>
           <p className="text-sm text-muted-foreground">Kelola item sebelum checkout</p>
         </div>
-        <div className="rounded-2xl bg-primary/10 p-2 text-primary">
+        <div className="rounded-3xl bg-primary/10 p-2 text-primary">
           <ShoppingCart className="h-5 w-5" />
         </div>
       </CardHeader>
@@ -130,7 +130,7 @@ function CartPanel({ onCheckout }: CartPanelProps) {
           </div>
         )}
         {ready && items.length === 0 && (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-white/15 bg-black/30 p-6 text-center text-sm text-muted-foreground">
+          <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-white/15 bg-black/30 p-6 text-center text-sm text-muted-foreground">
             <span>Belum ada item. Pilih varian top up untuk memulai.</span>
           </div>
         )}
@@ -139,12 +139,12 @@ function CartPanel({ onCheckout }: CartPanelProps) {
             {items.map(item => (
               <div
                 key={item.productId}
-                className="flex items-center justify-between rounded-xl border border-white/10 bg-black/30 px-3 py-3 transition-colors duration-200 hover:border-primary/40 hover:bg-primary/10"
+                className="flex items-center justify-between rounded-3xl border border-white/10 bg-black/30 px-3 py-3 transition-colors duration-200 hover:border-primary/40 hover:bg-primary/10"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-foreground">{item.name}</p>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="rounded-2xl bg-primary/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary">
+                    <Badge variant="secondary" className="rounded-3xl bg-primary/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary">
                       {item.game}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
@@ -156,7 +156,7 @@ function CartPanel({ onCheckout }: CartPanelProps) {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="rounded-2xl bg-white/10 text-foreground transition hover:bg-primary/20 hover:text-primary"
+                    className="rounded-3xl bg-white/10 text-foreground transition hover:bg-primary/20 hover:text-primary"
                     onClick={() => updateQty(item.productId, item.qty - 1)}
                   >
                     <Minus className="h-4 w-4" />
@@ -165,7 +165,7 @@ function CartPanel({ onCheckout }: CartPanelProps) {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="rounded-2xl bg-white/10 text-foreground transition hover:bg-primary/20 hover:text-primary"
+                    className="rounded-3xl bg-white/10 text-foreground transition hover:bg-primary/20 hover:text-primary"
                     onClick={() => updateQty(item.productId, item.qty + 1)}
                   >
                     <Plus className="h-4 w-4" />
@@ -175,7 +175,7 @@ function CartPanel({ onCheckout }: CartPanelProps) {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="rounded-2xl bg-white/10 text-foreground transition hover:bg-destructive/20 hover:text-destructive"
+                        className="rounded-3xl bg-white/10 text-foreground transition hover:bg-destructive/20 hover:text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -313,15 +313,15 @@ export default function HomePage() {
       </Head>
       <div className="min-h-screen bg-gradient-to-br from-[#070717] via-[#10102a] to-[#1a1840]">
         <div className="container mx-auto px-4 py-10">
-          <header className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_18px_40px_rgba(10,15,45,0.35)] backdrop-blur">
+          <header className="relative z-[60] rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_18px_40px_rgba(10,15,45,0.35)] backdrop-blur">
             <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
               <div className="max-w-2xl space-y-6">
-                <span className="inline-flex items-center gap-2 self-start rounded-2xl border border-white/10 bg-black/20 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+                <span className="inline-flex items-center gap-2 self-start rounded-3xl border border-white/10 bg-black/20 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
                   <Zap className="h-4 w-4" />
                   Top-up #1 untuk player kompetitif
                 </span>
                 <div className="flex flex-col gap-5 md:flex-row md:items-center">
-                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-primary/10 text-primary">
+                  <div className="grid h-16 w-16 place-items-center rounded-3xl bg-primary/10 text-primary">
                     <Gamepad2 className="h-8 w-8" />
                   </div>
                   <div>
@@ -335,9 +335,9 @@ export default function HomePage() {
                   {statHighlights.map(stat => (
                     <div
                       key={stat.label}
-                      className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+                      className="flex items-center gap-3 rounded-3xl border border-white/10 bg-black/20 px-4 py-3"
                     >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-primary/10 text-primary">
                         <stat.icon className="h-5 w-5" />
                       </div>
                       <div>
@@ -354,7 +354,7 @@ export default function HomePage() {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="h-11 w-11 rounded-2xl border-white/20 bg-black/20 p-0 text-foreground transition hover:border-primary/50 hover:text-primary"
+                        className="h-11 w-11 rounded-3xl border-white/20 bg-black/20 p-0 text-foreground transition hover:border-primary/50 hover:text-primary"
                         title={user ? user.name : "Masuk atau daftar"}
                       >
                         <User className="h-4 w-4" />
@@ -410,13 +410,13 @@ export default function HomePage() {
                     <SheetTrigger asChild>
                       <Button
                         variant="secondary"
-                        className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:hidden"
+                        className="flex items-center gap-2 rounded-3xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:hidden"
                         onClick={handleCheckout}
                       >
                         <ShoppingCart className="h-4 w-4" />
                         <span>Keranjang</span>
                         {totalItems > 0 && (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-3xl bg-primary text-xs font-bold text-primary-foreground">
                             {totalItems}
                           </span>
                         )}
@@ -436,26 +436,26 @@ export default function HomePage() {
                     <HoverCardTrigger asChild>
                       <Button
                         variant="secondary"
-                        className="hidden items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:flex"
+                        className="hidden items-center gap-2 rounded-3xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:flex"
                         onClick={handleCheckout}
                       >
                         <ShoppingCart className="h-4 w-4" />
                         <span>Keranjang</span>
                         {totalItems > 0 && (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-3xl bg-primary text-xs font-bold text-primary-foreground">
                             {totalItems}
                           </span>
                         )}
                       </Button>
                     </HoverCardTrigger>
-                    <HoverCardContent align="end" className="w-[380px] p-0">
+                    <HoverCardContent align="end" className="w-[480px] p-0">
                       <CartPanel onCheckout={handleCheckout} />
                     </HoverCardContent>
                   </HoverCard>
                 </div>
-                <div className="w-full rounded-2xl border border-white/10 bg-black/25 p-5 shadow-[0_12px_28px_rgba(10,15,45,0.35)]">
+                <div className="w-full rounded-3xl border border-white/10 bg-black/25 p-5 shadow-[0_12px_28px_rgba(10,15,45,0.35)]">
                   <div className="flex items-start gap-3">
-                    <div className="rounded-xl bg-primary/10 p-2 text-primary">
+                    <div className="rounded-3xl bg-primary/10 p-2 text-primary">
                       <Shield className="h-5 w-5" />
                     </div>
                     <div>
@@ -467,7 +467,7 @@ export default function HomePage() {
                   </div>
                   <Button
                     variant="ghost"
-                    className="mt-4 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
+                    className="mt-4 flex items-center gap-2 rounded-3xl border border-white/10 bg-white/5 px-4 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
                     onClick={handleCheckout}
                   >
                     Mulai Top-up
@@ -477,17 +477,17 @@ export default function HomePage() {
               </div>
             </div>
           </header>
-          <main className="mt-10 z-10 space-y-10">
+          <main className="mt-10 z-10 relative space-y-10">
             <section className="space-y-6">
               <Tabs value={activeGame} onValueChange={setActiveGame}>
-                <TabsList className="flex h-auto w-full flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 backdrop-blur">
+                <TabsList className="flex h-auto w-full flex-wrap gap-2 rounded-3xl border border-white/10 bg-white/5 p-2 backdrop-blur">
                   {gameTabs.map(tab => (
                     <TabsTrigger
                       key={tab.value}
                       value={tab.value}
-                      className="group flex items-center gap-2 rounded-2xl border border-transparent px-4 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary data-[state=active]:border-primary/60 data-[state=active]:bg-primary/20 data-[state=active]:text-primary-foreground"
+                      className="group flex items-center gap-2 rounded-3xl border border-transparent px-4 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary data-[state=active]:border-primary/60 data-[state=active]:bg-primary/20 data-[state=active]:text-primary-foreground"
                     >
-                      <span className={`flex h-7 w-7 items-center justify-center rounded-2xl bg-gradient-to-br ${tab.accent} text-white shadow-[0_0_15px_rgba(99,102,241,0.35)] transition-transform duration-300 group-hover:scale-110`}>
+                      <span className={`flex h-7 w-7 items-center justify-center rounded-3xl bg-gradient-to-br ${tab.accent} text-white shadow-[0_0_15px_rgba(99,102,241,0.35)] transition-transform duration-300 group-hover:scale-110`}>
                         <tab.icon className="h-4 w-4" />
                       </span>
                       {tab.label}
@@ -510,12 +510,12 @@ export default function HomePage() {
                       </div>
                     )}
                     {state === "error" && (
-                      <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center text-sm text-destructive-foreground">
+                      <div className="rounded-3xl border border-destructive/50 bg-destructive/10 p-6 text-center text-sm text-destructive-foreground">
                         Gagal memuat produk. Silakan muat ulang halaman.
                       </div>
                     )}
                     {state === "success" && filteredProducts.length === 0 && (
-                      <div className="rounded-lg border border-dashed border-primary/40 bg-background/40 p-10 text-center text-sm text-muted-foreground">
+                      <div className="rounded-3xl border border-dashed border-primary/40 bg-background/40 p-10 text-center text-sm text-muted-foreground">
                         Varian belum tersedia untuk kategori ini.
                       </div>
                     )}
@@ -530,11 +530,11 @@ export default function HomePage() {
                               <div className="flex items-center justify-between">
                                 <Badge
                                   variant="secondary"
-                                  className="rounded-2xl bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary"
+                                  className="rounded-3xl bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary"
                                 >
                                   {product.game}
                                 </Badge>
-                                <span className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                                <span className="rounded-3xl border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                                   {product.sku}
                                 </span>
                               </div>
@@ -546,7 +546,7 @@ export default function HomePage() {
                                   <Coins className="h-4 w-4" />
                                   {formatCurrency(product.price)}
                                 </span>
-                                <span className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
+                                <span className="rounded-3xl border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
                                   Instant
                                 </span>
                               </div>
@@ -556,7 +556,7 @@ export default function HomePage() {
                             </CardContent>
                             <CardFooter>
                               <Button
-                                className="w-full rounded-2xl bg-primary/90 text-sm font-semibold uppercase tracking-wide text-primary-foreground shadow-lg transition hover:bg-primary"
+                                className="w-full rounded-3xl bg-primary/90 text-sm font-semibold uppercase tracking-wide text-primary-foreground shadow-lg transition hover:bg-primary"
                                 onClick={() => handleAdd(product)}
                               >
                                 <span className="flex items-center justify-center gap-2">

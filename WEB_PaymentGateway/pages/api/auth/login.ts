@@ -5,6 +5,7 @@ import { dbConnect } from "@/lib/db";
 import User from "@/models/User";
 import { createSession } from "@/lib/auth";
 import { sendOtpMessage } from "@/lib/whatsapp";
+import { isDevEnv } from "@/lib/env";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Email tidak valid"),
@@ -51,6 +52,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ success: true, user: session });
     }
     const code = generateOtp();
+    if (isDevEnv()) {
+      console.info("[DEV] Generated OTP", { email: user.email, phone: user.phone, code });
+    }
     const otpHash = await bcrypt.hash(code, 10);
     const expiry = new Date(Date.now() + 5 * 60 * 1000);
     user.otpCode = otpHash;
@@ -58,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     user.otpAttempts = 0;
     await user.save();
     await sendOtpMessage(user.phone, code);
-    return res.status(200).json({ mfaRequired: true, email: user.email });
+    return res.status(200).json({ mfaRequired: true, email: user.email, phone: user.phone });
   } catch (error) {
     console.error("Login error", error);
     return res.status(500).json({ error: "Gagal memproses login" });

@@ -373,7 +373,7 @@ export default function AdminDashboardPage() {
                 {loadingOrders ? (
                   <p className="text-sm text-muted-foreground">Memuat data orders...</p>
                 ) : (
-                  <div className="rounded-lg border border-border">
+                  <div className="rounded-3xl border border-border">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -487,7 +487,7 @@ export default function AdminDashboardPage() {
                 <CardDescription>Tambah produk baru atau perbarui stok dan detail harga.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-background/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 rounded-3xl border border-border/60 bg-background/40 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-medium">Kelola produk</p>
                     <p className="text-xs text-muted-foreground">Buat atau ubah produk melalui modal di tengah layar.</p>
@@ -499,7 +499,7 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-background/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 rounded-3xl border border-border/60 bg-background/40 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-medium">Filter produk</p>
                     <p className="text-xs text-muted-foreground">Tampilkan produk berdasarkan kategori atau jenis game.</p>
@@ -521,7 +521,7 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-border">
+                <div className="rounded-3xl border border-border">
                   {loadingProducts ? (
                     <p className="p-4 text-sm text-muted-foreground">Memuat produk...</p>
                   ) : (

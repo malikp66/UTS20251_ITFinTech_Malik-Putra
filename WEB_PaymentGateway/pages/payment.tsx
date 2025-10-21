@@ -210,7 +210,7 @@ export default function PaymentPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="rounded-lg border border-border bg-background/40 p-4 text-sm">
+                  <div className="rounded-3xl border border-border bg-background/40 p-4 text-sm">
                     <p className="font-semibold text-foreground">Data pembeli</p>
                     <p className="text-sm text-muted-foreground">Email: {detail.buyer.email}</p>
                     <p className="text-sm text-muted-foreground">Nomor HP: {detail.buyer.phone}</p>

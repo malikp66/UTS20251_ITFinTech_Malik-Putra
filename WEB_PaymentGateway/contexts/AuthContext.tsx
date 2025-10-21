@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OtpInput } from "@/components/otp-input";
 
 type AuthModalMode = "login" | "register" | "otp" | null;
 
@@ -19,6 +20,8 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+const OTP_LENGTH = 6;
 
 async function fetchSession(): Promise<SessionUser | null> {
   const response = await fetch("/api/auth/session");
@@ -39,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [modalMode, setModalMode] = useState<AuthModalMode>(null);
   const [loginEmail, setLoginEmail] = useState("");
   const [otpEmail, setOtpEmail] = useState("");
+  const [otpPhone, setOtpPhone] = useState("");
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [modalBusy, setModalBusy] = useState(false);
   const [otpCountdown, setOtpCountdown] = useState<number | null>(null);
@@ -72,6 +76,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timer);
   }, [otpCountdown, modalMode]);
 
+  useEffect(() => {
+    if (modalMode !== "otp") {
+      setOtpPhone("");
+    }
+  }, [modalMode]);
+
   const handlePostLogin = useCallback(async () => {
     await refresh();
     setModalMode(null);
@@ -98,8 +108,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (json?.mfaRequired) {
           const emailValue = (json.email as string) || payload.email;
           setOtpEmail(emailValue);
+          setOtpPhone(typeof json.phone === "string" ? json.phone : "");
           setModalMode("otp");
           setOtpCountdown(300);
+          setModalBusy(false);
           toast({ title: "OTP dikirim", description: "Silakan periksa WhatsApp Anda dalam 5 menit." });
           return;
         }
@@ -144,10 +156,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (payload: { email: string; code: string }) => {
       setModalBusy(true);
       try {
+        const sanitizedCode = payload.code.replace(/\D/g, "").slice(0, OTP_LENGTH);
+        if (sanitizedCode.length !== OTP_LENGTH) {
+          toast({
+            title: "Kode OTP tidak valid",
+            description: `Kode OTP harus ${OTP_LENGTH} digit.`,
+            variant: "destructive"
+          });
+          setModalBusy(false);
+          return;
+        }
         const response = await fetch("/api/auth/verify-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({ email: payload.email, code: sanitizedCode })
         });
         const json = await response.json().catch(() => ({}));
         if (!response.ok) {
@@ -215,6 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setModalMode(null);
     setOtpEmail("");
+    setOtpPhone("");
     setOtpCountdown(null);
     setPendingAction(null);
   }, [modalBusy]);
@@ -228,6 +251,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loginEmail={loginEmail}
         setLoginEmail={setLoginEmail}
         otpEmail={otpEmail}
+        otpPhone={otpPhone}
         modalBusy={modalBusy}
         onLogin={submitLogin}
         onRegister={submitRegister}
@@ -236,6 +260,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setModalBusy={setModalBusy}
         otpCountdown={otpCountdown}
         setOtpCountdown={setOtpCountdown}
+        setOtpPhone={setOtpPhone}
       />
     </AuthContext.Provider>
   );
@@ -247,6 +272,7 @@ type AuthModalsProps = {
   loginEmail: string;
   setLoginEmail: (value: string) => void;
   otpEmail: string;
+  otpPhone: string;
   modalBusy: boolean;
   onLogin: (payload: { email: string; password: string }) => Promise<void>;
   onRegister: (payload: { name: string; email: string; phone: string; password: string }) => Promise<void>;
@@ -255,6 +281,7 @@ type AuthModalsProps = {
   setModalBusy: (value: boolean) => void;
   otpCountdown: number | null;
   setOtpCountdown: (value: number | null) => void;
+  setOtpPhone: (value: string) => void;
 };
 
 function AuthModals({
@@ -263,6 +290,7 @@ function AuthModals({
   loginEmail,
   setLoginEmail,
   otpEmail,
+  otpPhone,
   modalBusy,
   onLogin,
   onRegister,
@@ -270,7 +298,8 @@ function AuthModals({
   onClose,
   setModalBusy,
   otpCountdown,
-  setOtpCountdown
+  setOtpCountdown,
+  setOtpPhone
 }: AuthModalsProps) {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -278,6 +307,14 @@ function AuthModals({
   const [otpCode, setOtpCode] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [showPwdReg, setShowPwdReg] = useState(false);
+  const handleOtpChange = useCallback(
+    (next: string) => {
+      setOtpCode(next.replace(/\D/g, "").slice(0, OTP_LENGTH));
+    },
+    [setOtpCode]
+  );
+  const isOtpReady = otpCode.length === OTP_LENGTH;
+  const otpInputId = "otp-code";
 
   useEffect(() => {
     if (mode === "login") {
@@ -302,7 +339,7 @@ function AuthModals({
 
   return (
     <Dialog open={mode !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
-  <DialogContent className="max-w-md overflow-hidden px-5 py-10 rounded-2xl">
+  <DialogContent className="max-w-md overflow-hidden px-5 py-10 rounded-3xl">
     {/* Header with switch buttons */}
     <div className="relative">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1200px_400px_at_20%_-10%,theme(colors.violet.500/.25),transparent_60%),radial-gradient(800px_300px_at_110%_0%,theme(colors.fuchsia.500/.25),transparent_60%)]" />
@@ -316,7 +353,12 @@ function AuthModals({
               {mode === "register"
                 ? "Daftarkan diri Anda untuk dapat menambahkan produk ke keranjang."
                 : mode === "otp"
-                ? <>Kami telah mengirim kode ke WhatsApp <strong>{otpEmail}</strong>. Masukkan kode dalam 5 menit.</>
+                ? (
+                    <>
+                      Kami telah mengirim kode ke WhatsApp{" "}
+                      <strong>{otpPhone || "nomor WhatsApp terdaftar"}</strong>. Masukkan kode dalam 5 menit.
+                    </>
+                  )
                 : "Masukkan email dan password untuk melanjutkan."}
             </DialogDescription>
           </DialogHeader>
@@ -324,12 +366,12 @@ function AuthModals({
 
         {/* Mode switcher — buttons only */}
         {mode !== "otp" && (
-          <div className="flex shrink-0 rounded-xl bg-muted p-1">
+          <div className="flex shrink-0 rounded-3xl bg-muted p-1">
             <Button
               type="button"
               size="sm"
               variant={mode === "login" ? "default" : "ghost"}
-              className="rounded-lg"
+              className="rounded-3xl"
               onClick={() => {
                 if (mode !== "login") setMode("login");
                 setModalBusy(false);
@@ -341,7 +383,7 @@ function AuthModals({
               type="button"
               size="sm"
               variant={mode === "register" ? "default" : "ghost"}
-              className="rounded-lg"
+              className="rounded-3xl"
               onClick={() => {
                 if (mode !== "register") setMode("register");
                 setModalBusy(false);
@@ -521,13 +563,13 @@ function AuthModals({
         <>
           <div className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="otp-code">Kode OTP</Label>
-              <Input
-                id="otp-code"
+              <Label htmlFor={otpInputId}>Kode OTP</Label>
+              <OtpInput
+                id={otpInputId}
                 value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value)}
-                placeholder="123456"
-                required
+                length={OTP_LENGTH}
+                onChange={handleOtpChange}
+                disabled={modalBusy}
               />
             </div>
             {otpCountdown !== null && otpCountdown > 0 && (
@@ -540,7 +582,7 @@ function AuthModals({
           <DialogFooter className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Button
               className="w-full"
-              disabled={modalBusy}
+              disabled={modalBusy || !isOtpReady}
               onClick={() => void onVerifyOtp({ email: otpEmail || loginEmail, code: otpCode })}
             >
               {modalBusy ? "Memverifikasi..." : "Verifikasi"}
@@ -554,6 +596,8 @@ function AuthModals({
                 setMode("login");
                 setModalBusy(false);
                 setOtpCountdown(null);
+                setOtpCode("");
+                setOtpPhone("");
               }}
             >
               Kembali ke login

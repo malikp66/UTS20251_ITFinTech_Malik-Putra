@@ -124,7 +124,7 @@ export default function CheckoutPage() {
         <div className="container mx-auto px-4 py-10">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
-              <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary/20 text-primary">
+              <div className="grid h-12 w-12 place-items-center rounded-3xl bg-primary/20 text-primary">
                 <ShoppingCart className="h-6 w-6" />
               </div>
               <div>
