@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     type LeanProduct = ProductDocument & { _id: Types.ObjectId };
     const productIds = items.map(item => item.productId);
-    const products = await Product.find({ _id: { $in: productIds }, active: true }).lean<LeanProduct>();
+    const products = await Product.find({ _id: { $in: productIds }, active: true }).lean<LeanProduct[]>();
     if (products.length !== productIds.length) {
       return res.status(400).json({ message: "produk tidak ditemukan atau non-aktif" });
     }

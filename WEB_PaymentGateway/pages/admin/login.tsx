@@ -14,7 +14,8 @@ type LoginResponse =
   | { error: string };
 
 type VerifyResponse =
-  | { success: true; user?: { role: string } }
+  | { success: true; user?: { role: string }; error?: string }
+  | { success: false; error: string }
   | { error: string };
 
 export default function AdminLoginPage() {
