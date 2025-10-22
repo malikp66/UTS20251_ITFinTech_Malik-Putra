@@ -350,6 +350,40 @@ export default function HomePage() {
               </div>
               <div className="flex w-full max-w-sm flex-col items-start gap-5 md:items-end">
                 <div className="flex w-full items-center justify-end gap-3">
+                  <Button
+                    variant="secondary"
+                    className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:hidden"
+                    onClick={handleCheckout} // langsung pindah page
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    <span>Keranjang</span>
+                    {totalItems > 0 && (
+                      <span className="flex h-6 w-6 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
+                        {totalItems}
+                      </span>
+                    )}
+                  </Button>
+
+                  <HoverCard openDelay={120} closeDelay={120}>
+                    <HoverCardTrigger asChild>
+                      <Button
+                        variant="secondary"
+                        className="hidden items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:flex"
+                        onClick={handleCheckout} // boleh tetap, tapi HoverCard akan tampil saat hover
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        <span>Keranjang</span>
+                        {totalItems > 0 && (
+                          <span className="flex h-6 w-6 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
+                            {totalItems}
+                          </span>
+                        )}
+                      </Button>
+                    </HoverCardTrigger>
+                    <HoverCardContent align="end" className="w-[480px] p-0">
+                      <CartPanel onCheckout={handleCheckout} />
+                    </HoverCardContent>
+                  </HoverCard>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -406,40 +440,6 @@ export default function HomePage() {
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Button
-                    variant="secondary"
-                    className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:hidden"
-                    onClick={handleCheckout} // langsung pindah page
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    <span>Keranjang</span>
-                    {totalItems > 0 && (
-                      <span className="flex h-6 w-6 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
-                        {totalItems}
-                      </span>
-                    )}
-                  </Button>
-
-                  <HoverCard openDelay={120} closeDelay={120}>
-                    <HoverCardTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        className="hidden items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:flex"
-                        onClick={handleCheckout} // boleh tetap, tapi HoverCard akan tampil saat hover
-                      >
-                        <ShoppingCart className="h-4 w-4" />
-                        <span>Keranjang</span>
-                        {totalItems > 0 && (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
-                            {totalItems}
-                          </span>
-                        )}
-                      </Button>
-                    </HoverCardTrigger>
-                    <HoverCardContent align="end" className="w-[480px] p-0">
-                      <CartPanel onCheckout={handleCheckout} />
-                    </HoverCardContent>
-                  </HoverCard>
                 </div>
                 <div className="w-full rounded-3xl border border-white/10 bg-black/25 p-5 shadow-[0_12px_28px_rgba(10,15,45,0.35)]">
                   <div className="flex items-start gap-3">

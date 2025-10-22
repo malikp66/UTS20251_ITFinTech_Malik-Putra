@@ -9,6 +9,10 @@ import { OtpInput } from "@/components/otp-input";
 
 type AuthModalMode = "login" | "register" | "otp" | null;
 
+type LoginPayload =
+  | { method: "email"; email: string; password: string }
+  | { method: "phone"; phone: string };
+
 type AuthContextValue = {
   user: SessionUser | null;
   loading: boolean;
@@ -41,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [modalMode, setModalMode] = useState<AuthModalMode>(null);
   const [loginEmail, setLoginEmail] = useState("");
+  const [loginPhone, setLoginPhone] = useState("");
+  const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
   const [otpEmail, setOtpEmail] = useState("");
   const [otpPhone, setOtpPhone] = useState("");
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
@@ -93,22 +99,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [pendingAction, refresh]);
 
   const submitLogin = useCallback(
-    async (payload: { email: string; password: string }) => {
+    async (payload: LoginPayload) => {
       setModalBusy(true);
       try {
         const response = await fetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...payload })
+          body: JSON.stringify(payload)
         });
         const json = await response.json().catch(() => ({}));
         if (!response.ok) {
           throw new Error(typeof json?.error === "string" ? json.error : "Login gagal");
         }
         if (json?.mfaRequired) {
-          const emailValue = (json.email as string) || payload.email;
+          const emailValue =
+            typeof json.email === "string"
+              ? json.email
+              : payload.method === "email"
+              ? payload.email
+              : "";
+          const phoneValue =
+            typeof json.phone === "string"
+              ? json.phone.trim()
+              : payload.method === "phone"
+              ? payload.phone.trim()
+              : "";
           setOtpEmail(emailValue);
-          setOtpPhone(typeof json.phone === "string" ? json.phone.trim() : "");
+          setOtpPhone(phoneValue);
           setModalMode("otp");
           setOtpCountdown(300);
           setModalBusy(false);
@@ -250,6 +267,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setOtpPhone("");
     setOtpCountdown(null);
     setPendingAction(null);
+    setLoginMethod("email");
+    setLoginPhone("");
   }, [modalBusy]);
 
   return (
@@ -260,6 +279,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setMode={setModalMode}
         loginEmail={loginEmail}
         setLoginEmail={setLoginEmail}
+        loginPhone={loginPhone}
+        setLoginPhone={setLoginPhone}
+        loginMethod={loginMethod}
+        setLoginMethod={setLoginMethod}
         otpEmail={otpEmail}
         otpPhone={otpPhone}
         modalBusy={modalBusy}
@@ -281,10 +304,14 @@ type AuthModalsProps = {
   setMode: (mode: AuthModalMode) => void;
   loginEmail: string;
   setLoginEmail: (value: string) => void;
+  loginPhone: string;
+  setLoginPhone: (value: string) => void;
+  loginMethod: "email" | "phone";
+  setLoginMethod: (value: "email" | "phone") => void;
   otpEmail: string;
   otpPhone: string;
   modalBusy: boolean;
-  onLogin: (payload: { email: string; password: string }) => Promise<void>;
+  onLogin: (payload: LoginPayload) => Promise<void>;
   onRegister: (payload: { name: string; email: string; phone: string; password: string }) => Promise<void>;
   onVerifyOtp: (payload: { phone: string; code: string }) => Promise<void>;
   onClose: () => void;
@@ -299,6 +326,10 @@ function AuthModals({
   setMode,
   loginEmail,
   setLoginEmail,
+  loginPhone,
+  setLoginPhone,
+  loginMethod,
+  setLoginMethod,
   otpEmail,
   otpPhone,
   modalBusy,
@@ -313,7 +344,7 @@ function AuthModals({
 }: AuthModalsProps) {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [registerPhone, setRegisterPhone] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [showPwdReg, setShowPwdReg] = useState(false);
@@ -325,20 +356,23 @@ function AuthModals({
   );
   const isOtpReady = otpCode.length === OTP_LENGTH;
   const otpInputId = "otp-code";
+  const isPhoneLogin = loginMethod === "phone";
 
   useEffect(() => {
     if (mode === "login") {
       setPassword("");
+      setLoginMethod("email");
+      setLoginPhone("");
     }
     if (mode === "register") {
       setPassword("");
       setName("");
-      setPhone("");
+      setRegisterPhone("");
     }
     if (mode === "otp") {
       setOtpCode("");
     }
-  }, [mode]);
+  }, [mode, setLoginMethod, setLoginPhone, setRegisterPhone]);
 
   const convertCountdownToLabel = (value: number | null) => {
     if (!value || value <= 0) return "";
@@ -369,6 +403,8 @@ function AuthModals({
                       <strong>{otpPhone || "nomor WhatsApp terdaftar"}</strong>. Masukkan kode dalam 5 menit.
                     </>
                   )
+                : isPhoneLogin
+                ? "Masukkan nomor WhatsApp Anda untuk menerima OTP."
                 : "Masukkan email dan password untuk melanjutkan."}
             </DialogDescription>
           </DialogHeader>
@@ -412,65 +448,157 @@ function AuthModals({
       {mode === "login" && (
         <>
           <div className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="login-email">Email</Label>
-              <div className="relative">
-                <Input
-                  id="login-email"
-                  type="email"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="nama@email.com"
-                  required
-                  className="pl-10"
-                />
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  {/* lucide-react Mail */}
-                  <svg xmlns="http://www.w3.org/2000/svg" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>
-                </span>
-              </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={isPhoneLogin ? "ghost" : "default"}
+                className="rounded-3xl"
+                onClick={() => setLoginMethod("email")}
+                disabled={modalBusy}
+              >
+                Email
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={isPhoneLogin ? "default" : "ghost"}
+                className="rounded-3xl"
+                onClick={() => setLoginMethod("phone")}
+                disabled={modalBusy}
+              >
+                WhatsApp
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="login-password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="login-password"
-                  type={showPwd ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="********"
-                  required
-                  className="pl-10 pr-10"
-                />
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  {/* lucide-react Lock */}
-                  <svg xmlns="http://www.w3.org/2000/svg" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                </span>
-                <button
-                  type="button"
-                  aria-label={showPwd ? "Sembunyikan password" : "Tampilkan password"}
-                  onClick={() => setShowPwd((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {/* Eye / EyeOff */}
-                  {showPwd ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.53-1.2 1.27-2.33 2.19-3.32M10.58 10.58a2 2 0 1 0 2.84 2.84M6.1 6.1 17.9 17.9M22.54 11.08A11.05 11.05 0 0 0 12 4c-1.61 0-3.16.33-4.56.93"/></svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
-                  )}
-                </button>
+            {isPhoneLogin ? (
+              <div className="space-y-2">
+                <Label htmlFor="login-phone">Nomor WhatsApp</Label>
+                <div className="relative">
+                  <Input
+                    id="login-phone"
+                    value={loginPhone}
+                    onChange={(e) => setLoginPhone(e.target.value)}
+                    placeholder="08xxxxxxxxxx"
+                    required
+                    className="pl-10"
+                  />
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="size-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path d="M2 8c0-3.314 2.686-6 6-6h8c3.314 0 6 2.686 6 6v4c0 3.314-2.686 6-6 6h-1l-3 4-3-4H8c-3.314 0-6-2.686-6-6Z" />
+                      <path d="M8 10h.01M12 10h.01M16 10h.01" />
+                    </svg>
+                  </span>
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="login-email">Email</Label>
+                  <div className="relative">
+                    <Input
+                      id="login-email"
+                      type="email"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      placeholder="nama@email.com"
+                      required
+                      className="pl-10"
+                    />
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="size-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <path d="M4 4h16v16H4z" />
+                        <path d="m22 6-10 7L2 6" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="login-password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="login-password"
+                      type={showPwd ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="********"
+                      required
+                      className="pl-10 pr-10"
+                    />
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="size-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <rect x="3" y="11" width="18" height="10" rx="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={showPwd ? "Sembunyikan password" : "Tampilkan password"}
+                      onClick={() => setShowPwd((s) => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPwd ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="size-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                        >
+                          <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.53-1.2 1.27-2.33 2.19-3.32M10.58 10.58a2 2 0 1 0 2.84 2.84M6.1 6.1 17.9 17.9M22.54 11.08A11.05 11.05 0 0 0 12 4c-1.61 0-3.16.33-4.56.93" />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="size-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                        >
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Button
               className="w-full"
-              disabled={modalBusy}
-              onClick={() => void onLogin({ email: loginEmail, password })}
+              disabled={
+                modalBusy ||
+                (isPhoneLogin ? loginPhone.trim().length === 0 : !loginEmail || !password)
+              }
+              onClick={() =>
+                isPhoneLogin
+                  ? void onLogin({ method: "phone", phone: loginPhone.trim() })
+                  : void onLogin({ method: "email", email: loginEmail, password })
+              }
             >
-              {modalBusy ? "Memproses..." : "Masuk"}
+              {modalBusy ? "Memproses..." : isPhoneLogin ? "Kirim OTP" : "Masuk"}
             </Button>
             <Button
               type="button"
@@ -516,8 +644,8 @@ function AuthModals({
               <Label htmlFor="register-phone">Nomor WhatsApp</Label>
               <Input
                 id="register-phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                value={registerPhone}
+                onChange={(e) => setRegisterPhone(e.target.value)}
                 placeholder="08xxxxxxxxxx"
                 required
               />
@@ -549,7 +677,9 @@ function AuthModals({
             <Button
               className="w-full"
               disabled={modalBusy}
-              onClick={() => void onRegister({ name, email: loginEmail, phone, password })}
+              onClick={() =>
+                void onRegister({ name, email: loginEmail, phone: registerPhone, password })
+              }
             >
               {modalBusy ? "Mendaftarkan..." : "Daftar"}
             </Button>

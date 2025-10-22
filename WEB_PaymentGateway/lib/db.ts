@@ -24,16 +24,34 @@ function getCache(): MongooseCache {
   return global.mongooseCache;
 }
 
+function getReadyState(conn: typeof mongoose | null) {
+  return conn?.connection.readyState ?? 0;
+}
+
 export async function dbConnect() {
   const cache = getCache();
-  if (cache.conn) {
+  const readyState = getReadyState(cache.conn);
+  if (readyState === 1) {
+    return cache.conn!;
+  }
+  if (readyState === 2 && cache.promise) {
+    cache.conn = await cache.promise;
     return cache.conn;
+  }
+  if (readyState === 0 || readyState === 3) {
+    cache.conn = null;
+    cache.promise = null;
   }
   if (!cache.promise) {
     cache.promise = mongoose.connect(connectionUri, {
       maxPoolSize: 10
     });
   }
-  cache.conn = await cache.promise;
+  try {
+    cache.conn = await cache.promise;
+  } catch (error) {
+    cache.promise = null;
+    throw error;
+  }
   return cache.conn;
 }

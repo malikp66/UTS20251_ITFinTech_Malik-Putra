@@ -115,7 +115,7 @@ export default function AdminDashboardPage() {
   const [productGameFilter, setProductGameFilter] = useState<string>("all");
   const [productSearch, setProductSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const itemsPerPage = 2;
 
   // derived: product categories
   const productCategories = useMemo(() => {
@@ -800,11 +800,6 @@ export default function AdminDashboardPage() {
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="modal-description">Deskripsi</Label>
                 <Input id="modal-description" value={productForm.description} onChange={(e) => setProductForm((p) => ({ ...p, description: e.target.value }))} placeholder="Deskripsi singkat produk" />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="modal-stock">Stok</Label>
-                <Input id="modal-stock" type="number" min="0" value={productForm.stock} onChange={(e) => setProductForm((p) => ({ ...p, stock: e.target.value }))} required />
               </div>
 
               <div className="space-y-2">
