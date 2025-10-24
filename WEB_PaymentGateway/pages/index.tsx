@@ -329,7 +329,7 @@ export default function HomePage() {
 
   const handleOpenWhatsApp = () => {
     const message = encodeURIComponent(
-      "Halo Admin Malik Gaming Store! 👋"
+      "Halo Admin Malik Gaming Store!"
     );
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank", "noopener,noreferrer");
   };
@@ -419,7 +419,7 @@ export default function HomePage() {
                       <CartPanel onCheckout={handleCheckout} />
                     </HoverCardContent>
                   </HoverCard>
-                  <DropdownMenu>
+                  <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="default"

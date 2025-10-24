@@ -372,7 +372,7 @@ export default function AdminDashboardPage() {
     active?: boolean;
     payload?: { value: number }[];
     label?: string;
-    labelPrefix?: string; // "21 Oct" / "Okt 2025"
+    labelPrefix?: string;
   }) {
     if (!active || !payload || !payload.length) return null;
     const v = payload[0].value as number;

@@ -138,19 +138,15 @@ html {
   }
 }
 
-/* ===== Scrollbar (global) – cocok dengan tema ===== */
-
-/* Firefox */
 * {
-  scrollbar-width: thin; /* thin | auto */
+  scrollbar-width: thin; 
   scrollbar-color: hsl(var(--muted-foreground) / 0.35)
-                   hsl(var(--muted) / 0.35); /* thumb track */
+                   hsl(var(--muted) / 0.35); 
 }
 
-/* WebKit (Chrome, Edge, Safari, Opera) */
 *::-webkit-scrollbar {
   width: 10px;
-  height: 10px;                /* untuk scroll horizontal */
+  height: 10px;                
 }
 
 *::-webkit-scrollbar-track {
@@ -168,7 +164,7 @@ html {
       hsl(var(--primary) / 0.55),
       hsl(var(--accent) / 0.55)
     );
-  border: 2px solid hsl(var(--secondary) / 0.55);  /* memberi ruang agar terlihat ‘floating’ */
+  border: 2px solid hsl(var(--secondary) / 0.55); 
   border-radius: 999px;
   box-shadow:
     0 0 0 1px hsl(var(--border) / 0.7) inset,
@@ -183,13 +179,10 @@ html {
     );
 }
 
-/* sudut scroll container */
 *::-webkit-scrollbar-corner {
   background: hsl(var(--secondary) / 0.4);
 }
 
-/* ===== Varian utilitas (opsional) ===== */
-/* Pasang class .scrollbar-ghost di elemen yang ingin scrollbar-nya lebih samar */
 .scrollbar-ghost::-webkit-scrollbar-thumb {
   background: hsl(var(--foreground) / 0.25);
   border: 2px solid hsl(var(--secondary) / 0.6);
@@ -199,7 +192,6 @@ html {
                    hsl(var(--secondary) / 0.6);
 }
 
-/* ===== Responsif: tipiskan di mobile untuk hemat ruang ===== */
 @media (max-width: 640px) {
   *::-webkit-scrollbar {
     width: 7px;
@@ -210,7 +202,6 @@ html {
   }
 }
 
-/* ===== Stabilkan layout saat muncul scrollbar ===== */
 html {
   scrollbar-gutter: stable both-edges;
 }
