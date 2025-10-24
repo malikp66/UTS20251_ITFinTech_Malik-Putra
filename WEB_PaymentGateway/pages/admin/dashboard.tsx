@@ -858,7 +858,7 @@ export default function AdminDashboardPage() {
                             {c.label}
                           </SelectItem>
                         ))}
-                        <SelectItem value="__new__">+ Tambah kategori baru</SelectItem>
+                        {/* <SelectItem value="__new__">+ Tambah kategori baru</SelectItem> */}
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">Pilih kategori yang tersedia atau tambahkan kategori baru.</p>

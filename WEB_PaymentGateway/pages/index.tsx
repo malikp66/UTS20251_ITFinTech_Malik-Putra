@@ -260,8 +260,39 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [activeGame, setActiveGame] = useState<string>(gameTabs[0].value);
   const [sandboxNoticeOpen, setSandboxNoticeOpen] = useState(false);
-  const whatsappNumber = "6285121308836";
   const formattedWhatsAppNumber = "+62 851-2130-8836";
+  const WA_SANDBOX_FLAG_KEY = "waSandboxChatDone";
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        const done = typeof window !== "undefined" && localStorage.getItem(WA_SANDBOX_FLAG_KEY) === "1";
+        if (!done) setSandboxNoticeOpen(true);
+      } catch {
+        setSandboxNoticeOpen(true);
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const tryCloseSandbox = () => {
+    try {
+      const done = typeof window !== "undefined" && localStorage.getItem(WA_SANDBOX_FLAG_KEY) === "1";
+      if (!done) return;
+    } catch {
+      return;
+    }
+    setSandboxNoticeOpen(false);
+  };
+
+  const handleOpenWhatsApp = () => {
+    window.open(`https://wa.me/message/XVBGCTS22UWMJ1`, "_blank", "noopener,noreferrer");
+
+    try {
+      localStorage.setItem(WA_SANDBOX_FLAG_KEY, "1");
+    } catch {}
+    setSandboxNoticeOpen(false);
+  };
 
   useEffect(() => {
     let aborted = false;
@@ -327,13 +358,6 @@ export default function HomePage() {
     });
   };
 
-  const handleOpenWhatsApp = () => {
-    const message = encodeURIComponent(
-      "Halo Admin Malik Gaming Store!"
-    );
-    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank", "noopener,noreferrer");
-  };
-
   return (
     <>
       <Head>
@@ -342,9 +366,10 @@ export default function HomePage() {
       </Head>
       <SandboxNoticeToast
         open={sandboxNoticeOpen}
-        onClose={() => setSandboxNoticeOpen(false)}
+        onClose={tryCloseSandbox}
         onAction={handleOpenWhatsApp}
         displayNumber={formattedWhatsAppNumber}
+        lockUntilAction
       />
       <div className="min-h-screen bg-gradient-to-br from-[#070717] via-[#10102a] to-[#1a1840]">
         <div className="container mx-auto px-3 sm:px-4 py-8 sm:py-10">
@@ -506,7 +531,7 @@ export default function HomePage() {
           <main className="mt-10 z-10 relative space-y-10">
             <section className="space-y-6">
               <Tabs value={activeGame} onValueChange={setActiveGame}>
-                <TabsList className="flex h-auto w-full flex-wrap gap-2 rounded-3xl border border-white/10 bg-white/5 p-2 backdrop-blur">
+                <TabsList className="flex h-auto w-full flex-wrap gap-2 rounded-3xl border backdrop-blur-xl border-primary/40 bg-black/30 text-foreground shadow-[0_10px_26px_rgba(10,15,45,0.3)] p-2">
                   {gameTabs.map(tab => (
                     <TabsTrigger
                       key={tab.value}

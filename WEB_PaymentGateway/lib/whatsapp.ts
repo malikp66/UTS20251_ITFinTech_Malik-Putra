@@ -149,6 +149,7 @@ function composeCheckout(order: OrderDocument) {
     "",
     "Detail:",
     itemLines,
+    "Biaya Admin: Rp 2.000",
     `Total: Rp${order.total.toLocaleString("id-ID")}`,
     "",
     instructions,
