@@ -326,8 +326,12 @@ export default function HomePage() {
       router.push("/checkout");
     });
   };
+
   const handleOpenWhatsApp = () => {
-    window.open(`https://wa.me/${whatsappNumber}`, "_blank", "noopener,noreferrer");
+    const message = encodeURIComponent(
+      "Halo Admin Malik Gaming Store! 👋"
+    );
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank", "noopener,noreferrer");
   };
 
   return (
