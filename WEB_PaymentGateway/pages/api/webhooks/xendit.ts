@@ -6,10 +6,10 @@ import { sendPaymentSuccessNotification } from "@/lib/whatsapp";
 
 function normalizeStatus(status: string | undefined) {
   const value = status ? status.toUpperCase() : "";
-  if (value === "PAID") {
+  if (value === "PAID" || value === "SETTLED" || value === "COMPLETED") {
     return "PAID" as const;
   }
-  if (value === "EXPIRED") {
+  if (value === "EXPIRED" || value === "CANCELLED") {
     return "EXPIRED" as const;
   }
   return "PENDING" as const;
@@ -41,14 +41,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ success: true });
     }
     const status = normalizeStatus(payload.status || payload.data?.status);
+    const previousStatus = payment.status;
     payment.status = status;
     payment.raw = payload;
     await payment.save();
-    if (status === "PAID") {
+    if (status === "PAID" && previousStatus !== "PAID") {
       await Order.findByIdAndUpdate(payment.orderId, { status: "lunas" });
       await sendPaymentSuccessNotification(payment.orderId.toString());
     }
-    if (status === "EXPIRED") {
+    if (status === "EXPIRED" && previousStatus !== "EXPIRED") {
       await Order.findByIdAndUpdate(payment.orderId, { status: "expired" });
     }
     return res.status(200).json({ success: true });

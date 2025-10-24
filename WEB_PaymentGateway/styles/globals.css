@@ -214,3 +214,57 @@ html {
 html {
   scrollbar-gutter: stable both-edges;
 }
+
+@media (pointer: fine) {
+  body.custom-cursor-enabled {
+    cursor: none !important;
+  }
+}
+
+.lightning-cursor,
+.lightning-cursor-trail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate3d(-50%, -50%, 0);
+  will-change: transform, opacity;
+  opacity: 0;
+}
+
+.lightning-cursor {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, hsl(var(--foreground) / 0.95) 0%, hsl(var(--primary) / 0.95) 55%, hsl(var(--primary) / 0.65) 80%, transparent 100%);
+  box-shadow:
+    0 0 6px hsl(var(--primary) / 0.9),
+    0 0 16px hsl(var(--accent) / 0.8),
+    0 0 32px hsl(var(--accent) / 0.7);
+  filter: drop-shadow(0 0 18px hsl(var(--accent) / 0.75));
+  mix-blend-mode: screen;
+  transition: opacity 140ms ease, transform 70ms ease-out;
+}
+
+.lightning-cursor-trail {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    hsl(var(--primary) / 0.55) 0%,
+    hsl(var(--accent) / 0.35) 35%,
+    transparent 70%
+  );
+  filter: blur(32px);
+  mix-blend-mode: screen;
+  transition: opacity 220ms ease, transform 320ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightning-cursor,
+  .lightning-cursor-trail {
+    transition: none;
+  }
+}

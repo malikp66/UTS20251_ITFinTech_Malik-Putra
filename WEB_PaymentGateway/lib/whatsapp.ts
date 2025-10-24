@@ -1,153 +1,193 @@
 import Order, { OrderDocument } from "@/models/Order";
 import { getAppEnv, isDevEnv } from "@/lib/env";
 
-const META_WHATSAPP_API_VERSION = process.env.WHATSAPP_API_VERSION || "v17.0";
+const META_WHATSAPP_API_VERSION = process.env.WHATSAPP_API_VERSION || "v22.0";
+
+type WhatsAppProvider = {
+  sendText(to: string, body: string, context?: Record<string, unknown>): Promise<void>;
+  sendOtp?(phone: string, code: string): Promise<void>;
+};
+
+let providerInstance: WhatsAppProvider | null = null;
+
+function getProvider(): WhatsAppProvider {
+  if (!providerInstance) {
+    providerInstance = createMetaProvider();
+    console.info("[WhatsApp] Provider initialised", { provider: "meta" });
+  }
+  return providerInstance;
+}
+
+function normalizeDigits(phone: string): string {
+  return phone.trim().replace(/[^0-9]/g, "");
+}
+function formatPhoneNumberInternational(phone: string): string {
+  let digits = normalizeDigits(phone);
+  if (!digits) throw new Error("Nomor telepon kosong");
+  if (digits.startsWith("62")) return digits;
+  if (digits.startsWith("0")) return `62${digits.slice(1)}`;
+  if (digits.startsWith("8")) return `62${digits}`;
+  return digits;
+}
+function formatPhoneNumberE164(phone: string): string {
+  const international = formatPhoneNumberInternational(phone);
+  return international.startsWith("+") ? international : `+${international}`;
+}
 
 function getAccessToken() {
   const token = process.env.WHATSAPP_ACCESS_TOKEN;
   if (!token) throw new Error("WHATSAPP_ACCESS_TOKEN belum diset");
   return token;
 }
-
 function getPhoneNumberId() {
   const id = process.env.WHATSAPP_PHONE_NUMBER_ID;
   if (!id) throw new Error("WHATSAPP_PHONE_NUMBER_ID belum diset");
   return id;
 }
-
 function canSendMessages() {
   return Boolean(process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID);
 }
 
-/**
- * Format nomor telepon ke format internasional (E.164)
- * Contoh: 087733564750 -> 6287733564750
- */
-function formatPhoneNumber(phone: string): string {
-  let normalized = phone.trim();
+function createMetaProvider(): WhatsAppProvider {
+  async function dispatchText(to: string, body: string, context: Record<string, unknown>) {
+    const appEnv = getAppEnv();
+    const formattedTo = formatPhoneNumberInternational(to);
 
-  // hapus spasi, tanda plus, atau tanda strip
-  normalized = normalized.replace(/[\s\-\+]/g, "");
+    console.info("[WhatsApp][Meta] Preparing to send TEXT", { appEnv, to: formattedTo, ...context });
 
-  // kalau dimulai dengan 0 -> ganti jadi 62
-  if (normalized.startsWith("0")) {
-    normalized = "62" + normalized.slice(1);
-  }
+    if (!canSendMessages()) {
+      console.warn("[WhatsApp][Meta] Credentials missing. Skipping send.", {
+        hasAccessToken: Boolean(process.env.WHATSAPP_ACCESS_TOKEN),
+        hasPhoneNumberId: Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID),
+      });
+      return;
+    }
 
-  return normalized;
-}
-
-export async function sendWhatsAppMessage(to: string, body: string) {
-  const appEnv = getAppEnv();
-  const formattedTo = formatPhoneNumber(to); // ✅ pastikan formatnya benar
-  console.info("[WhatsApp] Preparing to send message", {
-    appEnv,
-    to: formattedTo,
-    bodyPreview: body.slice(0, 60),
-  });
-
-  if (isDevEnv()) {
-    console.info("[WhatsApp] APP_ENV is development, bypassing send", { to: formattedTo });
-    return;
-  }
-
-  if (!canSendMessages()) {
-    const missingCredentials = {
-      hasAccessToken: Boolean(process.env.WHATSAPP_ACCESS_TOKEN),
-      hasPhoneNumberId: Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID),
+    const url = `https://graph.facebook.com/${META_WHATSAPP_API_VERSION}/${getPhoneNumberId()}/messages`;
+    const payload = {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: formattedTo,
+      type: "text",
+      text: { preview_url: false, body },
     };
-    console.warn("[WhatsApp] Credentials missing. Skipping send.", missingCredentials);
-    return;
-  }
 
-  const url = `https://graph.facebook.com/${META_WHATSAPP_API_VERSION}/${getPhoneNumberId()}/messages`;
+    const startedAt = Date.now();
+    let responseText: string | undefined;
 
-  const payload = {
-    messaging_product: "whatsapp",
-    to: formattedTo,
-    type: "text",
-    text: {
-      preview_url: false,
-      body,
-    },
-  };
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-  const startedAt = Date.now();
-  let responseText: string | undefined;
+      responseText = await response.text();
+      if (!response.ok) {
+        console.error("[WhatsApp][Meta] Failed to send text", {
+          status: response.status,
+          statusText: response.statusText,
+          responseText,
+          to: formattedTo,
+          context,
+        });
+        throw new Error("Gagal mengirim pesan WhatsApp (text)");
+      }
 
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${getAccessToken()}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+      let responseJson: unknown;
+      try {
+        responseJson = responseText ? JSON.parse(responseText) : undefined;
+      } catch {
+        responseJson = responseText;
+      }
 
-    responseText = await response.text();
-    if (!response.ok) {
-      console.error("[WhatsApp] Failed to send message", {
-        status: response.status,
-        statusText: response.statusText,
+      console.info("[WhatsApp][Meta] Text sent OK", {
+        tookMs: Date.now() - startedAt,
+        response: responseJson,
+        context,
+      });
+    } catch (err) {
+      console.error("[WhatsApp][Meta] Unexpected error when sending text", {
+        error: err instanceof Error ? err.message : err,
+        stack: err instanceof Error ? err.stack : undefined,
         responseText,
         to: formattedTo,
+        context,
       });
-      throw new Error("Gagal mengirim pesan WhatsApp");
+      throw err;
     }
-
-    let responseJson: unknown;
-    try {
-      responseJson = responseText ? JSON.parse(responseText) : undefined;
-    } catch {
-      responseJson = responseText;
-    }
-
-    console.info("[WhatsApp] Message sent successfully", {
-      tookMs: Date.now() - startedAt,
-      response: responseJson,
-    });
-  } catch (err) {
-    console.error("[WhatsApp] Unexpected error when sending message", {
-      error: err instanceof Error ? err.message : err,
-      stack: err instanceof Error ? err.stack : undefined,
-      responseText,
-      to: formattedTo,
-    });
-    throw err;
   }
+
+  const sendText = (to: string, body: string) =>
+    dispatchText(to, body, { type: "text", bodyPreview: body.slice(0, 80) });
+
+  const sendOtp = async (phone: string, code: string) => {
+    const body = composeOtp(code);
+    await dispatchText(phone, body, { type: "otp" });
+  };
+
+  return { sendText, sendOtp };
 }
 
-export async function sendOtpMessage(phone: string, code: string) {
-  const message = `Kode OTP UTS Fintech Anda: ${code}. Berlaku selama 5 menit. Jangan bagikan ke siapapun.`;
-  await sendWhatsAppMessage(phone, message);
+function composeOtp(code: string) {
+  return `Kode OTP Malik Gaming Store Anda: ${code}\nBerlaku 5 menit. Jangan bagikan kepada siapa pun.`;
 }
 
-export async function sendCheckoutNotification(order: OrderDocument) {
+function composeCheckout(order: OrderDocument) {
   const instructions =
     process.env.PAYMENT_INSTRUCTIONS || "Silakan selesaikan pembayaran sesuai petunjuk di invoice.";
   const itemLines = order.items
-    .map((item) => `- ${item.name} x${item.quantity} @ ${item.price.toLocaleString("id-ID")}`)
+    .map((item) => `• ${item.name} x${item.quantity} @ ${item.price.toLocaleString("id-ID")}`)
     .join("\n");
-  const body = [
-    "Terima kasih telah berbelanja di Malik Gaming Store!",
-    "Berikut detail pesanan Anda:",
+
+  return [
+    "🧾 *Pesanan Diterima*",
+    `ID: ${order._id}`,
+    "",
+    "Detail:",
     itemLines,
     `Total: Rp${order.total.toLocaleString("id-ID")}`,
     "",
     instructions,
   ].join("\n");
+}
+
+function composePaymentSuccess(order: OrderDocument) {
+  return [
+    "✅ *Pembayaran Diterima*",
+    `ID Pesanan: ${order._id}`,
+    `Total: Rp${order.total.toLocaleString("id-ID")}`,
+    "",
+    "Pesanan sedang diproses. Terima kasih!",
+    "Jika ada pertanyaan, balas pesan ini.",
+  ].join("\n");
+}
+
+export async function sendWhatsAppMessage(to: string, body: string) {
+  const provider = getProvider();
+  await provider.sendText(to, body);
+}
+
+export async function sendOtpMessage(phone: string, code: string) {
+  const provider = getProvider();
+  if (provider.sendOtp) {
+    await provider.sendOtp(phone, code);
+  } else {
+    await provider.sendText(phone, composeOtp(code), { fallback: true });
+  }
+}
+
+export async function sendCheckoutNotification(order: OrderDocument) {
+  const body = composeCheckout(order);
   await sendWhatsAppMessage(order.buyer.phone, body);
 }
 
 export async function sendPaymentSuccessNotification(orderId: string) {
   const order = await Order.findById(orderId);
   if (!order) return;
-  const body = [
-    "Pembayaran kami terima. Terima kasih!",
-    "Pesanan Anda sedang diproses dan akan segera kami tindaklanjuti.",
-    `Total: Rp${order.total.toLocaleString("id-ID")}`,
-    "Jika ada pertanyaan, balas pesan ini.",
-  ].join("\n");
+  const body = composePaymentSuccess(order);
   await sendWhatsAppMessage(order.buyer.phone, body);
 }

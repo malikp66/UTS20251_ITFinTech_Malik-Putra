@@ -1,7 +1,8 @@
+"use client";
+
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
-import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   Coins,
@@ -62,6 +63,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { SandboxNoticeToast } from "@/components/whatsapp-sandbox-notice";
 
 type Product = {
   _id: string;
@@ -83,19 +85,34 @@ type CartPanelProps = {
 type GameTab = {
   value: string;
   label: string;
-  icon: LucideIcon;
-  accent: string;
+  img: string; 
+  mode?: "grayscale" | "white";
 };
 
 const gameTabs: GameTab[] = [
-  { value: "mobile legends", label: "Mobile Legends", icon: Zap, accent: "from-purple-500/60 via-indigo-500/50 to-blue-500/40" },
-  { value: "pubg mobile", label: "PUBG Mobile", icon: Shield, accent: "from-amber-400/60 via-orange-500/40 to-red-500/30" },
-  { value: "roblox", label: "Roblox", icon: Activity, accent: "from-emerald-400/60 via-teal-500/40 to-cyan-500/30" }
+  {
+    value: "mobile legends",
+    label: "Mobile Legends",
+    img: "/mole.png",
+    mode: "white",
+  },
+  {
+    value: "pubg mobile",
+    label: "PUBG Mobile",
+    img: "/pubg.png",
+    mode: "white",
+  },
+  {
+    value: "roblox",
+    label: "Roblox",
+    img: "/roblox.png",
+    mode: "white",
+  },
 ];
 
 const statHighlights = [
   { icon: Sparkles, label: "Member Aktif", value: "12K+" },
-  { icon: Gamepad2, label: "Game Support", value: "25+" },
+  { icon: Gamepad2, label: "Game Support", value: "3+" },
   { icon: Shield, label: "Keamanan Transaksi", value: "100%" }
 ];
 
@@ -243,6 +260,9 @@ export default function HomePage() {
   const [state, setState] = useState<FetchState>("idle");
   const [products, setProducts] = useState<Product[]>([]);
   const [activeGame, setActiveGame] = useState<string>(gameTabs[0].value);
+  const [sandboxNoticeOpen, setSandboxNoticeOpen] = useState(false);
+  const whatsappNumber = "6285121308836";
+  const formattedWhatsAppNumber = "+62 851-2130-8836";
 
   useEffect(() => {
     let aborted = false;
@@ -271,6 +291,10 @@ export default function HomePage() {
       aborted = true;
     };
   }, [toast]);
+  useEffect(() => {
+    const timer = setTimeout(() => setSandboxNoticeOpen(true), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filteredProducts = useMemo(
     () =>
@@ -304,6 +328,9 @@ export default function HomePage() {
       router.push("/checkout");
     });
   };
+  const handleOpenWhatsApp = () => {
+    window.open(`https://wa.me/${whatsappNumber}`, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <>
@@ -311,6 +338,12 @@ export default function HomePage() {
         <title>Malik Gaming Store</title>
         <meta name="description" content="Top up cepat untuk Mobile Legends, PUBG Mobile, dan Roblox" />
       </Head>
+      <SandboxNoticeToast
+        open={sandboxNoticeOpen}
+        onClose={() => setSandboxNoticeOpen(false)}
+        onAction={handleOpenWhatsApp}
+        displayNumber={formattedWhatsAppNumber}
+      />
       <div className="min-h-screen bg-gradient-to-br from-[#070717] via-[#10102a] to-[#1a1840]">
         <div className="container mx-auto px-4 py-10">
           <header className="relative z-[40] rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_18px_40px_rgba(10,15,45,0.35)] backdrop-blur">
@@ -353,7 +386,7 @@ export default function HomePage() {
                   <Button
                     variant="secondary"
                     className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:hidden"
-                    onClick={handleCheckout} // langsung pindah page
+                    onClick={handleCheckout} 
                   >
                     <ShoppingCart className="h-4 w-4" />
                     <span>Keranjang</span>
@@ -388,7 +421,7 @@ export default function HomePage() {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="h-11 w-11 rounded-3xl border-white/20 bg-black/20 p-0 text-foreground transition hover:border-primary/50 hover:text-primary"
+                        className="h-11 w-11 !p-0 rounded-3xl border-white/20 bg-black/20 text-foreground transition hover:border-primary/50 hover:text-primary"
                         title={user ? user.name : "Masuk atau daftar"}
                       >
                         <User className="h-4 w-4" />
@@ -475,9 +508,19 @@ export default function HomePage() {
                       value={tab.value}
                       className="group flex items-center gap-2 rounded-3xl border border-transparent px-4 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary data-[state=active]:border-primary/60 data-[state=active]:bg-primary/20 data-[state=active]:text-primary-foreground"
                     >
-                      <span className={`flex h-7 w-7 items-center justify-center rounded-3xl bg-gradient-to-br ${tab.accent} text-white shadow-[0_0_15px_rgba(99,102,241,0.35)] transition-transform duration-300 group-hover:scale-110`}>
-                        <tab.icon className="h-4 w-4" />
-                      </span>
+                      <img
+                        src={tab.img}
+                        alt={`${tab.label} logo`}
+                        className={[
+                          "h-7 w-7 object-contain",
+                          tab.mode === "white" ? "[filter:brightness(0)_invert(1)]" : "",
+                          tab.mode === "grayscale" ? "grayscale" : "",
+                          "group-hover:opacity-100 opacity-90",
+                          "data-[state=active]:opacity-100",
+                        ].join(" ")}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                      />
                       {tab.label}
                     </TabsTrigger>
                   ))}

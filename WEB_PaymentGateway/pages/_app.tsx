@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
+import LightningCursor from "@/components/LightningCursor";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
@@ -16,6 +17,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <div className={appClassName}>
           <Component {...pageProps} />
           <Toaster />
+          <LightningCursor />
         </div>
       </CartProvider>
     </AuthProvider>
