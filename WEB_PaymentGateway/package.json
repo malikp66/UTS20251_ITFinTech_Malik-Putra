@@ -4,9 +4,9 @@
   "author": "Malik Putra",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 4001",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 4001",
     "lint": "eslint",
     "seed": "node scripts/seed.js",
     "admin:create": "node scripts/create-admin.js"

@@ -9,7 +9,7 @@ export type UserDocument = {
   phone: string;
   passwordHash: string;
   role: UserRole;
-  otpCode?: string; // stores hashed value
+  otpCode?: string;
   otpExpiry?: Date;
   mfaEnabled?: boolean;
   otpAttempts?: number;

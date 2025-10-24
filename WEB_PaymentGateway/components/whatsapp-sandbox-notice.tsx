@@ -31,7 +31,12 @@ export function SandboxNoticeToast({ open, onClose, onAction, displayNumber }: S
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 sm:bottom-10">
+    <>
+      <div
+        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+        aria-hidden
+      />
+      <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 sm:bottom-10">
       <div className="pointer-events-auto relative w-full max-w-md overflow-hidden rounded-3xl border border-primary/50 bg-[#0b0a1c]/95 p-6 shadow-[0_30px_70px_rgba(88,51,255,0.55)] backdrop-blur-xl sm:rounded-[36px] sm:p-8">
         <div className="pointer-events-none absolute -inset-20 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.28),transparent_60%)]" aria-hidden />
         <div className="relative space-y-6">
@@ -79,5 +84,6 @@ export function SandboxNoticeToast({ open, onClose, onAction, displayNumber }: S
         </div>
       </div>
     </div>
+    </>
   );
 }

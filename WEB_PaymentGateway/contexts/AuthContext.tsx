@@ -384,7 +384,6 @@ function AuthModals({
   return (
     <Dialog open={mode !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
   <DialogContent className="max-w-md overflow-hidden px-5 py-10 rounded-3xl">
-    {/* Header with switch buttons */}
     <div className="relative">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1200px_400px_at_20%_-10%,theme(colors.violet.500/.25),transparent_60%),radial-gradient(800px_300px_at_110%_0%,theme(colors.fuchsia.500/.25),transparent_60%)]" />
       <div className="relative flex items-center justify-between gap-3 px-6 py-5">
@@ -410,7 +409,6 @@ function AuthModals({
           </DialogHeader>
         </div>
 
-        {/* Mode switcher — buttons only */}
         {mode !== "otp" && (
           <div className="flex shrink-0 rounded-3xl bg-muted p-1">
             <Button
@@ -443,7 +441,6 @@ function AuthModals({
       <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
     </div>
 
-    {/* Body */}
     <div className="space-y-4 px-6 py-5">
       {mode === "login" && (
         <>

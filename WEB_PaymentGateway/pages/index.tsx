@@ -343,37 +343,50 @@ export default function HomePage() {
         displayNumber={formattedWhatsAppNumber}
       />
       <div className="min-h-screen bg-gradient-to-br from-[#070717] via-[#10102a] to-[#1a1840]">
-        <div className="container mx-auto px-4 py-10">
-          <header className="relative z-[40] rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_18px_40px_rgba(10,15,45,0.35)] backdrop-blur">
-            <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+        <div className="container mx-auto px-3 sm:px-4 py-8 sm:py-10">
+          <header className="relative z-[20]">
+            <div className="neon-border-shell relative rounded-3xl p-8 shadow-[0_18px_40px_rgba(10,15,45,0.35)] bg-[cornflowerblue] backdrop-blur">
+              <div className="neon-border-frame pointer-events-none" aria-hidden="true" />
+              <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-center items-end md:justify-between">
               <div className="max-w-2xl space-y-6">
                 <span className="inline-flex items-center gap-2 self-start rounded-3xl border border-white/10 bg-black/20 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
                   <Zap className="h-4 w-4" />
                   Top-up #1 untuk player kompetitif
                 </span>
-                <div className="flex flex-col gap-5 md:flex-row md:items-center">
-                  <div className="grid p-6 place-items-center rounded-3xl bg-primary/10 text-primary">
-                    <Gamepad2 className="h-8 w-8" />
+                <div className="flex gap-5 flex-row md:items-center">
+                  <div className="grid place-items-center rounded-3xl bg-primary/10 text-primary p-4 shrink-0">
+                    <div className="h-14 w-14 md:h-22 md:w-22 aspect-square">
+                      <img
+                        src="/icon.png"
+                        alt="Malik Gaming Store Logo"
+                        className="h-full w-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">Malik Gaming Store</h1>
-                    <p className="mt-2 text-base text-muted-foreground">
-                      Pilih paket top up favorit untuk Mobile Legends, PUBG Mobile, dan Roblox dengan pengalaman neon yang cepat dan aman.
+
+                  <div className="min-w-0">
+                    <h1 className="text-[clamp(1.75rem,4.5vw,2.75rem)] font-extrabold tracking-tight md:text-5xl">
+                      Malik Gaming Store
+                    </h1>
+                    <p className="mt-2 text-sm sm:text-base text-muted-foreground">
+                      Pilih paket top up favorit untuk Mobile Legends, PUBG Mobile, dan Roblox
+                      dengan pengalaman neon yang cepat dan aman.
                     </p>
                   </div>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-3">
                   {statHighlights.map(stat => (
                     <div
                       key={stat.label}
                       className="flex items-center gap-3 rounded-3xl border border-white/10 bg-black/20 px-4 py-3"
                     >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-primary/10 text-primary">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-primary/10 text-primary shrink-0">
                         <stat.icon className="h-5 w-5" />
                       </div>
-                      <div>
-                        <p className="text-lg font-semibold text-foreground">{stat.value}</p>
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">{stat.label}</p>
+                      <div className="min-w-0">
+                        <p className="text-base sm:text-lg font-semibold text-foreground leading-tight">{stat.value}</p>
+                        <p className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground truncate">{stat.label}</p>
                       </div>
                     </div>
                   ))}
@@ -381,45 +394,32 @@ export default function HomePage() {
               </div>
               <div className="flex w-full max-w-sm flex-col items-start gap-5 md:items-end">
                 <div className="flex w-full items-center justify-end gap-3">
-                  <Button
-                    variant="secondary"
-                    className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:hidden"
-                    onClick={handleCheckout} 
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    <span>Keranjang</span>
-                    {totalItems > 0 && (
-                      <span className="flex h-6 w-6 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
-                        {totalItems}
-                      </span>
-                    )}
-                  </Button>
-
                   <HoverCard openDelay={120} closeDelay={120}>
                     <HoverCardTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        className="hidden items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground transition hover:border-primary/40 hover:bg-primary/20 md:flex"
-                        onClick={handleCheckout} // boleh tetap, tapi HoverCard akan tampil saat hover
-                      >
-                        <ShoppingCart className="h-4 w-4" />
+                      <Button variant="default" className="items-center gap-2 flex" onClick={handleCheckout}>
+                        <ShoppingCart className="h-4 w-4 shrink-0" />
                         <span>Keranjang</span>
                         {totalItems > 0 && (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground leading-none">
                             {totalItems}
                           </span>
                         )}
                       </Button>
                     </HoverCardTrigger>
-                    <HoverCardContent align="end" className="w-[480px] p-0">
+                    <HoverCardContent
+                      align="end"
+                      sideOffset={10}
+                      alignOffset={-4}
+                      className="z-50 p-0 w-[min(92vw,480px)]"
+                    >
                       <CartPanel onCheckout={handleCheckout} />
                     </HoverCardContent>
                   </HoverCard>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        variant="outline"
-                        className="h-11 w-11 !p-0 rounded-3xl border-white/20 bg-black/20 text-foreground transition hover:border-primary/50 hover:text-primary"
+                        variant="default"
+                        className="h-11 w-11 !p-0 rounded-3xl"
                         title={user ? user.name : "Masuk atau daftar"}
                       >
                         <User className="h-4 w-4" />
@@ -474,19 +474,21 @@ export default function HomePage() {
                 </div>
                 <div className="w-full rounded-3xl border border-white/10 bg-black/25 p-5 shadow-[0_12px_28px_rgba(10,15,45,0.35)]">
                   <div className="flex items-start gap-3">
-                    <div className="rounded-3xl bg-primary/10 p-2 text-primary">
+                    <div className="rounded-3xl bg-primary/10 p-2 text-primary shrink-0">
                       <Shield className="h-5 w-5" />
                     </div>
-                    <div>
-                      <h2 className="text-lg font-semibold text-foreground">Keamanan Premium</h2>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="min-w-0">
+                      <h2 className="text-base sm:text-lg font-semibold text-foreground">
+                        Keamanan Premium
+                      </h2>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         Checkout dilindungi enkripsi Xendit dengan fraud detection real-time dan monitoring nonstop.
                       </p>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
-                    className="mt-4 flex items-center gap-2 rounded-3xl border border-white/10 bg-white/5 px-4 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
+                    className="mt-4 w-full justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
                     onClick={handleCheckout}
                   >
                     Mulai Top-up
@@ -495,6 +497,7 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
+          </div>
           </header>
           <main className="mt-10 z-10 relative space-y-10">
             <section className="space-y-6">
@@ -504,22 +507,24 @@ export default function HomePage() {
                     <TabsTrigger
                       key={tab.value}
                       value={tab.value}
-                      className="group flex items-center gap-2 rounded-3xl border border-transparent px-4 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary data-[state=active]:border-primary/60 data-[state=active]:bg-primary/20 data-[state=active]:text-primary-foreground"
+                      className="group flex items-center gap-2 rounded-3xl border border-transparent px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary data-[state=active]:border-primary/60 data-[state=active]:bg-primary/20 data-[state=active]:text-primary-foreground"
                     >
-                      <img
-                        src={tab.img}
-                        alt={`${tab.label} logo`}
-                        className={[
-                          "h-7 w-7 object-contain",
-                          tab.mode === "white" ? "[filter:brightness(0)_invert(1)]" : "",
-                          tab.mode === "grayscale" ? "grayscale" : "",
-                          "group-hover:opacity-100 opacity-90",
-                          "data-[state=active]:opacity-100",
-                        ].join(" ")}
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                      />
-                      {tab.label}
+                      <span className="h-6 w-6 sm:h-7 sm:w-7 shrink-0">
+                        <img
+                          src={tab.img}
+                          alt={`${tab.label} logo`}
+                          className={[
+                            "h-full w-full object-contain",
+                            tab.mode === "white" ? "[filter:brightness(0)_invert(1)]" : "",
+                            tab.mode === "grayscale" ? "grayscale" : "",
+                            "group-hover:opacity-100 opacity-90",
+                            "data-[state=active]:opacity-100",
+                          ].join(" ")}
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                        />
+                      </span>
+                      <span className="truncate">{tab.label}</span>
                     </TabsTrigger>
                   ))}
                 </TabsList>
@@ -549,7 +554,7 @@ export default function HomePage() {
                       </div>
                     )}
                     {state === "success" && filteredProducts.length > 0 && (
-                      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                         {filteredProducts.map(product => (
                           <Card
                             key={product._id}

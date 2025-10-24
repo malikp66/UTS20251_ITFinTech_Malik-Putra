@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { getSessionFromCookies, isAdminSession } from "@/lib/auth";
+import { RefreshCcw } from "lucide-react";
 
 type OrderRow = {
   _id: string;
@@ -101,7 +102,6 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // data states
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [dailyData, setDailyData] = useState<DailyPoint[]>([]);
@@ -110,7 +110,6 @@ export default function AdminDashboardPage() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
-  // ui states
   const [productForm, setProductForm] = useState<ProductFormState>(emptyProductForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [savingProduct, setSavingProduct] = useState(false);
@@ -118,7 +117,6 @@ export default function AdminDashboardPage() {
   const [categoryMode, setCategoryMode] = useState<"existing" | "new">("existing");
   const [newCategory, setNewCategory] = useState("");
 
-  // filters
   const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatusFilter>("all");
   const [orderSearch, setOrderSearch] = useState("");
   const [productGameFilter, setProductGameFilter] = useState<string>("all");
@@ -126,7 +124,6 @@ export default function AdminDashboardPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 2;
 
-  // derived: product categories
   const productCategories = useMemo(() => {
     const map = new Map<string, string>();
     products.forEach((p) => {
@@ -141,7 +138,6 @@ export default function AdminDashboardPage() {
       .map(([value, label]) => ({ value, label }));
   }, [products]);
 
-  // derived: filtered orders/products
   const filteredOrders = useMemo(() => {
     const q = orderSearch.trim().toLowerCase();
     return orders.filter((o) => {
@@ -168,7 +164,6 @@ export default function AdminDashboardPage() {
     });
   }, [products, productGameFilter, productSearch]);
 
-  // KPI (informasi cepat)
   const kpi = useMemo(() => {
     const todayStr = format(new Date(), "yyyy-MM-dd");
     const todayTotal = orders
@@ -184,7 +179,6 @@ export default function AdminDashboardPage() {
     return { todayTotal, monthTotal, totalOrder, aov };
   }, [orders]);
 
-  // effects: load data
   const loadOrders = useCallback(async () => {
     setLoadingOrders(true);
     try {
@@ -239,7 +233,6 @@ export default function AdminDashboardPage() {
     loadProducts();
   }, [loadOrders, loadAnalytics, loadProducts]);
 
-  // auth
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
@@ -247,7 +240,6 @@ export default function AdminDashboardPage() {
     router.push("/admin/login");
   };
 
-  // product form
   const resetForm = () => {
     setProductForm(emptyProductForm);
     setEditingId(null);
@@ -329,7 +321,6 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // export CSV orders
   const exportOrdersCsv = () => {
     const rows = [
       ["order_id", "created_at", "buyer_name", "buyer_email", "buyer_phone", "status", "total", "items"].join(","),
@@ -355,7 +346,6 @@ export default function AdminDashboardPage() {
     URL.revokeObjectURL(url);
   };
 
-  // chart series
   const dailySeries = useMemo(
     () => dailyData.map((d) => ({ dateLabel: format(new Date(d.date), "dd MMM"), total: d.total })),
     [dailyData]
@@ -365,7 +355,6 @@ export default function AdminDashboardPage() {
     [monthlyData]
   );
 
-  // Format rupiah compact ("Rp178rb", "Rp1,2 jt")
   const fmtCompact = (n: number) =>
     new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -374,7 +363,6 @@ export default function AdminDashboardPage() {
       notation: "compact"
     }).format(n);
 
-  // Tooltip kustom bergaya glass
   function NeonTooltip({
     active,
     payload,
@@ -411,7 +399,6 @@ export default function AdminDashboardPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-[#070717] via-[#10102a] to-[#1a1840] px-3 sm:px-4 py-6 sm:py-10">
         <div className="mx-auto w-full max-w-7xl space-y-6 sm:space-y-8">
-          {/* HEADER */}
           <header className="top-0 z-40 -mx-3 sm:mx-0 px-3 sm:px-0 py-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -425,7 +412,6 @@ export default function AdminDashboardPage() {
             </div>
           </header>
 
-          {/* KPI CARDS */}
           <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             <Card className="bg-background/70 backdrop-blur">
               <CardHeader className="py-4">
@@ -453,16 +439,13 @@ export default function AdminDashboardPage() {
             </Card>
           </section>
 
-          {/* ORDERS + ANALYTICS */}
           <section className="grid gap-6 lg:grid-cols-2">
-            {/* ORDERS */}
             <Card className="bg-background/70 backdrop-blur">
               <CardHeader className="space-y-4">
                 <div className="flex flex-col justify-center space-y-1">
                   <CardTitle>Order Terbaru</CardTitle>
                   <CardDescription>Update status pembayaran pelanggan secara real-time.</CardDescription>
                 </div>
-                {/* toolbar */}
                 <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <div className="col-span-2">
                     <Input
@@ -578,13 +561,22 @@ export default function AdminDashboardPage() {
                   </p>
                   <div className="flex gap-2">
                     <Button variant="outline" onClick={exportOrdersCsv}>Export CSV</Button>
-                    <Button variant="secondary" onClick={loadOrders}>Refresh</Button>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      onClick={loadOrders}
+                      aria-label="Refresh orders"
+                      title="Refresh"
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                      <span className="sr-only">Refresh</span>
+                    </Button>
+
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* ANALYTICS */}
             <Card className="bg-background/70 backdrop-blur">
               <CardHeader>
                 <CardTitle>Analytics Penjualan</CardTitle>
@@ -702,7 +694,6 @@ export default function AdminDashboardPage() {
             </Card>
           </section>
 
-          {/* PRODUCTS */}
           <section>
             <Card className="bg-background/70 backdrop-blur">
               <CardHeader className="space-y-4">
@@ -711,7 +702,6 @@ export default function AdminDashboardPage() {
                   <CardDescription>Tambah produk baru atau perbarui harga.</CardDescription>
                 </div>
 
-                {/* toolbar */}
                 <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <div className="order-2 sm:order-1">
                     <Input
@@ -802,7 +792,6 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* PRODUCT MODAL */}
       <Dialog
         open={productModalOpen}
         onOpenChange={(open) => {

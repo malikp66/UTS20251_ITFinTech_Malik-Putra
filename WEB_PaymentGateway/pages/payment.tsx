@@ -141,16 +141,18 @@ export default function PaymentPage() {
       <Head>
         <title>Status Pembayaran | Malik Gaming Store</title>
       </Head>
-      <div className="min-h-screen bg-gradient-to-br from-[#070717] via-[#10102a] to-[#1a1840]">
-        <div className="container mx-auto px-4 py-10">
+      <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#070717] via-[#10102a] to-[#1a1840]">
+        <div className="pointer-events-none absolute -left-32 top-24 h-72 w-72 rounded-full bg-primary/30 blur-3xl sm:-left-16 md:-left-8" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-40 bottom-10 h-80 w-80 rounded-full bg-secondary/25 blur-3xl sm:-right-24 md:-right-12" aria-hidden="true" />
+        <div className="relative z-10 container mx-auto px-4 py-10">
           <header className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Status Pembayaran</h1>
-              <p className="text-sm text-muted-foreground">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Status Pembayaran</h1>
+              <p className="text-sm text-muted-foreground sm:text-base">
                 Pantau pembayaran invoice Xendit untuk order ID {orderId ?? "-"}.
               </p>
             </div>
-            <Button variant="secondary" onClick={handleBack}>
+            <Button variant="secondary" className="w-full md:w-fit" onClick={handleBack}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Kembali ke beranda
             </Button>
@@ -192,8 +194,8 @@ export default function PaymentPage() {
             </Card>
           )}
           {state === "success" && detail && (
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-              <Card className="bg-background/70">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+              <Card className="order-2 bg-background/70 lg:order-1">
                 <CardHeader className="flex flex-col gap-4">
                   <div className="flex items-center gap-3">
                     <StatusIcon className="h-6 w-6 text-primary" />
@@ -215,32 +217,56 @@ export default function PaymentPage() {
                     <p className="text-sm text-muted-foreground">Email: {detail.buyer.email}</p>
                     <p className="text-sm text-muted-foreground">Nomor HP: {detail.buyer.phone}</p>
                   </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Item</TableHead>
-                        <TableHead className="w-20 text-center">Qty</TableHead>
-                        <TableHead className="text-right">Subtotal</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {detail.items.map(item => (
-                        <TableRow key={item.productId}>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <p className="text-sm font-semibold text-foreground">{item.name}</p>
-                              <span className="text-xs text-muted-foreground">{formatCurrency(item.price)} per item</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center text-sm font-semibold">{item.quantity}</TableCell>
-                          <TableCell className="text-right font-semibold">{formatCurrency(item.subtotal)}</TableCell>
+                  <div className="space-y-4 lg:hidden">
+                    {detail.items.map(item => (
+                      <div
+                        key={item.productId}
+                        className="rounded-2xl border border-primary/25 bg-background/70 p-4 shadow-[0_12px_35px_rgba(12,9,35,0.45)]"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="text-base font-semibold text-foreground">{item.name}</p>
+                            <span className="text-xs text-muted-foreground">{formatCurrency(item.price)} per item</span>
+                          </div>
+                          <span className="text-sm font-semibold text-primary">
+                            {formatCurrency(item.subtotal)}
+                          </span>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between text-sm text-muted-foreground">
+                          <span>Qty</span>
+                          <span className="font-semibold text-foreground">{item.quantity}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="hidden lg:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Item</TableHead>
+                          <TableHead className="w-20 text-center">Qty</TableHead>
+                          <TableHead className="text-right">Subtotal</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {detail.items.map(item => (
+                          <TableRow key={item.productId}>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <p className="text-sm font-semibold text-foreground">{item.name}</p>
+                                <span className="text-xs text-muted-foreground">{formatCurrency(item.price)} per item</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center text-sm font-semibold">{item.quantity}</TableCell>
+                            <TableCell className="text-right font-semibold">{formatCurrency(item.subtotal)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </CardContent>
               </Card>
-              <Card className="bg-gradient-to-b from-primary/10 to-secondary/10">
+              <Card className="order-1 bg-gradient-to-b from-primary/10 to-secondary/10 lg:order-2">
                 <CardHeader>
                   <CardTitle>Langkah berikutnya</CardTitle>
                 </CardHeader>

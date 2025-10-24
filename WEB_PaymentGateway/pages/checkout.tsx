@@ -134,21 +134,23 @@ export default function CheckoutPage() {
       <Head>
         <title>Checkout | Malik Gaming Store</title>
       </Head>
-      <div className="min-h-screen bg-gradient-to-br from-[#070717] via-[#10102a] to-[#1a1840]">
-        <div className="container mx-auto px-4 py-10">
+      <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#070717] via-[#10102a] to-[#1a1840]">
+        <div className="pointer-events-none absolute -left-32 top-20 h-72 w-72 rounded-full bg-primary/30 blur-3xl sm:-left-24 md:-left-10" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-40 bottom-0 h-80 w-80 rounded-full bg-secondary/25 blur-3xl sm:-right-28 md:-right-16" aria-hidden="true" />
+        <div className="relative z-10 container mx-auto px-4 py-10">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <div className="grid h-12 w-12 place-items-center rounded-3xl bg-primary/20 text-primary">
                 <ShoppingCart className="h-6 w-6" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold">Checkout</h1>
-                <p className="text-sm text-muted-foreground">
+                <h1 className="text-2xl font-bold sm:text-3xl">Checkout</h1>
+                <p className="text-sm text-muted-foreground sm:text-base">
                   Review pesanan dan isi data pembeli sebelum lanjut ke pembayaran.
                 </p>
               </div>
             </div>
-            <Button variant="secondary" className="w-fit" onClick={() => router.push("/")}>
+            <Button variant="secondary" className="w-full md:w-fit" onClick={() => router.push("/")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Kembali ke beranda
             </Button>
@@ -179,67 +181,113 @@ export default function CheckoutPage() {
             </Card>
           )}
           {ready && items.length > 0 && (
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
-              <Card className="bg-background/60">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+              <Card className="order-2 bg-background/60 lg:order-1">
                 <CardHeader>
                   <CardTitle>Ringkasan pesanan</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Item</TableHead>
-                        <TableHead className="w-24 text-center">Qty</TableHead>
-                        <TableHead className="text-right">Harga</TableHead>
-                        <TableHead className="text-right">Subtotal</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {items.map(item => (
-                        <TableRow key={item.productId}>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <p className="text-sm font-semibold text-foreground">{item.name}</p>
-                              <Badge variant="secondary" className="uppercase text-[11px] tracking-wide">
-                                {item.game}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-center gap-2">
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => updateQty(item.productId, item.qty - 1)}
-                              >
-                                <Minus className="h-4 w-4" />
-                              </Button>
-                              <span className="w-6 text-center text-sm font-semibold">{item.qty}</span>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => updateQty(item.productId, item.qty + 1)}
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right text-sm text-muted-foreground">
-                            {formatCurrency(item.price)}
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">
+                <CardContent className="space-y-6">
+                  <div className="space-y-4 lg:hidden">
+                    {items.map(item => (
+                      <div
+                        key={item.productId}
+                        className="rounded-2xl border border-primary/25 bg-background/70 p-4 shadow-[0_12px_35px_rgba(12,9,35,0.45)]"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="text-base font-semibold text-foreground">{item.name}</p>
+                            <Badge variant="secondary" className="mt-1 uppercase text-[11px] tracking-wide">
+                              {item.game}
+                            </Badge>
+                          </div>
+                          <span className="text-sm font-semibold text-primary">
                             {formatCurrency(item.price * item.qty)}
-                          </TableCell>
+                          </span>
+                        </div>
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+                          <span>Harga satuan</span>
+                          <span className="font-medium text-foreground">{formatCurrency(item.price)}</span>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Qty</span>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => updateQty(item.productId, item.qty - 1)}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <span className="w-6 text-center text-sm font-semibold">{item.qty}</span>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => updateQty(item.productId, item.qty + 1)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="hidden lg:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Item</TableHead>
+                          <TableHead className="w-24 text-center">Qty</TableHead>
+                          <TableHead className="text-right">Harga</TableHead>
+                          <TableHead className="text-right">Subtotal</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                    <TableCaption className="text-left text-xs text-muted-foreground">
-                      Perubahan qty otomatis tersimpan di keranjang.
-                    </TableCaption>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {items.map(item => (
+                          <TableRow key={item.productId}>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <p className="text-sm font-semibold text-foreground">{item.name}</p>
+                                <Badge variant="secondary" className="uppercase text-[11px] tracking-wide">
+                                  {item.game}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center justify-center gap-2">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => updateQty(item.productId, item.qty - 1)}
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="w-6 text-center text-sm font-semibold">{item.qty}</span>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => updateQty(item.productId, item.qty + 1)}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right text-sm text-muted-foreground">
+                              {formatCurrency(item.price)}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              {formatCurrency(item.price * item.qty)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                      <TableCaption className="text-left text-xs text-muted-foreground">
+                        Perubahan qty otomatis tersimpan di keranjang.
+                      </TableCaption>
+                    </Table>
+                  </div>
                 </CardContent>
               </Card>
-              <Card className="h-max bg-gradient-to-b from-primary/10 to-secondary/10">
+              <Card className="order-1 h-max bg-gradient-to-b from-primary/10 to-secondary/10 lg:order-2">
                 <CardHeader>
                   <CardTitle>Detail pembayaran</CardTitle>
                 </CardHeader>
