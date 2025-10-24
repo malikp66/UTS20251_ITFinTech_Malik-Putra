@@ -22,7 +22,7 @@ function normalizeDigits(phone: string): string {
   return phone.trim().replace(/[^0-9]/g, "");
 }
 function formatPhoneNumberInternational(phone: string): string {
-  let digits = normalizeDigits(phone);
+  const digits = normalizeDigits(phone);
   if (!digits) throw new Error("Nomor telepon kosong");
   if (digits.startsWith("62")) return digits;
   if (digits.startsWith("0")) return `62${digits.slice(1)}`;

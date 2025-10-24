@@ -37,7 +37,6 @@ const productSchema = new mongoose.Schema(
     sku: { type: String, required: true, unique: true },
     price: { type: Number, required: true },
     currency: { type: String, required: true, default: "IDR" },
-    image: { type: String },
     active: { type: Boolean, default: true },
   },
   { timestamps: true }

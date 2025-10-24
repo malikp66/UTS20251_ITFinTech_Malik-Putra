@@ -34,8 +34,6 @@ type ProductRow = {
   name: string;
   price: number;
   description?: string;
-  stock?: number;
-  image?: string;
   game?: string;
   currency: string;
   active: boolean;
@@ -43,6 +41,7 @@ type ProductRow = {
 
 type DailyPoint = { date: string; total: number };
 type MonthlyPoint = { year: number; month: number; total: number };
+type OrderStatusFilter = "all" | OrderRow["status"];
 
 const STATUS_LABEL: Record<OrderRow["status"], string> = {
   waiting_payment: "Waiting Payment",
@@ -60,8 +59,6 @@ type ProductFormState = {
   name: string;
   price: string;
   description: string;
-  stock: string;
-  image: string;
   game: string;
   currency: string;
   active: boolean;
@@ -71,8 +68,6 @@ const emptyProductForm: ProductFormState = {
   name: "",
   price: "",
   description: "",
-  stock: "0",
-  image: "",
   game: "",
   currency: "IDR",
   active: true,
@@ -85,6 +80,18 @@ function formatCategoryLabel(value?: string | null) {
     .split(/\s+/)
     .map((w) => w[0].toUpperCase() + w.slice(1))
     .join(" ");
+}
+
+const rupiahFormatter = new Intl.NumberFormat("id-ID");
+
+function digitsOnly(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+function formatPriceInput(value: string) {
+  const digits = digitsOnly(value);
+  if (!digits) return "";
+  return rupiahFormatter.format(Number(digits));
 }
 function getErrorMessage(e: unknown) {
   return e instanceof Error ? e.message : "Terjadi kesalahan tak terduga";
@@ -108,9 +115,11 @@ export default function AdminDashboardPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [savingProduct, setSavingProduct] = useState(false);
   const [productModalOpen, setProductModalOpen] = useState(false);
+  const [categoryMode, setCategoryMode] = useState<"existing" | "new">("existing");
+  const [newCategory, setNewCategory] = useState("");
 
   // filters
-  const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | OrderRow["status"]>("all");
+  const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatusFilter>("all");
   const [orderSearch, setOrderSearch] = useState("");
   const [productGameFilter, setProductGameFilter] = useState<string>("all");
   const [productSearch, setProductSearch] = useState("");
@@ -242,6 +251,8 @@ export default function AdminDashboardPage() {
   const resetForm = () => {
     setProductForm(emptyProductForm);
     setEditingId(null);
+    setCategoryMode("existing");
+    setNewCategory("");
   };
   const closeProductModal = () => setProductModalOpen(false);
   const openCreateProductModal = () => {
@@ -250,14 +261,17 @@ export default function AdminDashboardPage() {
   };
   const startEdit = (p: ProductRow) => {
     setEditingId(p._id);
+    const normalizedGame = (p.game ?? "").trim().toLowerCase();
+    const knownCategories = new Set(productCategories.map((c) => c.value));
+    const isCustomCategory = normalizedGame && !knownCategories.has(normalizedGame) && normalizedGame !== "general";
+    setCategoryMode(isCustomCategory ? "new" : "existing");
+    setNewCategory(isCustomCategory ? formatCategoryLabel(p.game) : "");
     setProductForm({
       name: p.name,
-      price: String(p.price),
+      price: digitsOnly(String(p.price)),
       description: p.description ?? "",
-      stock: String(p.stock ?? 0),
-      image: p.image ?? "",
-      game: p.game ?? "",
-      currency: p.currency ?? "IDR",
+      game: normalizedGame === "general" ? "" : normalizedGame,
+      currency: (p.currency ?? "IDR").toUpperCase(),
       active: p.active,
     });
     setProductModalOpen(true);
@@ -266,10 +280,26 @@ export default function AdminDashboardPage() {
     e.preventDefault();
     setSavingProduct(true);
     try {
+      const priceNumber = Number(productForm.price || 0);
+      if (!Number.isFinite(priceNumber) || priceNumber <= 0) {
+        throw new Error("Harga harus lebih dari 0");
+      }
+      const categoryValue =
+        categoryMode === "new"
+          ? newCategory.trim()
+          : (productForm.game || "general").trim();
+      if (!categoryValue) {
+        throw new Error("Kategori produk wajib diisi");
+      }
+      const currency = (productForm.currency || "IDR").trim().toUpperCase();
+      const description = productForm.description.trim();
       const payload = {
-        ...productForm,
-        price: Number(productForm.price),
-        stock: Number(productForm.stock),
+        name: productForm.name.trim(),
+        price: priceNumber,
+        description: description ? description : undefined,
+        game: categoryValue.toLowerCase(),
+        currency,
+        active: productForm.active,
       };
       const url = editingId ? `/api/admin/products/${editingId}` : "/api/admin/products";
       const method = editingId ? "PATCH" : "POST";
@@ -352,7 +382,7 @@ export default function AdminDashboardPage() {
     labelPrefix
   }: {
     active?: boolean;
-    payload?: any[];
+    payload?: { value: number }[];
     label?: string;
     labelPrefix?: string; // "21 Oct" / "Okt 2025"
   }) {
@@ -442,7 +472,7 @@ export default function AdminDashboardPage() {
                       aria-label="Cari order"
                     />
                   </div>
-                  <Select value={orderStatusFilter} onValueChange={(v: any) => setOrderStatusFilter(v)}>
+                  <Select value={orderStatusFilter} onValueChange={(value) => setOrderStatusFilter(value as OrderStatusFilter)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
@@ -790,36 +820,111 @@ export default function AdminDashboardPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="modal-name">Nama Produk</Label>
-                <Input id="modal-name" value={productForm.name} onChange={(e) => setProductForm((p) => ({ ...p, name: e.target.value }))} required />
+                <Input
+                  id="modal-name"
+                  value={productForm.name}
+                  onChange={(e) => setProductForm((p) => ({ ...p, name: e.target.value }))}
+                  placeholder="Contoh: 86 Diamonds"
+                  required
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="modal-price">Harga</Label>
-                <Input id="modal-price" type="number" min="0" value={productForm.price} onChange={(e) => setProductForm((p) => ({ ...p, price: e.target.value }))} required />
+                <Label htmlFor="modal-price">Harga (Rupiah)</Label>
+                <Input
+                  id="modal-price"
+                  inputMode="numeric"
+                  pattern="[0-9.]*"
+                  value={formatPriceInput(productForm.price)}
+                  onChange={(e) => setProductForm((p) => ({ ...p, price: digitsOnly(e.target.value) }))}
+                  placeholder="cth. 150.000"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">Pemisah ribuan ditambahkan otomatis agar mudah dibaca.</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Kategori Game</Label>
+                {categoryMode === "existing" ? (
+                  <>
+                    <Select
+                      value={productForm.game ? productForm.game : "general"}
+                      onValueChange={(value) => {
+                        if (value === "__new__") {
+                          setCategoryMode("new");
+                          setNewCategory("");
+                          setProductForm((p) => ({ ...p, game: "" }));
+                          return;
+                        }
+                        setProductForm((p) => ({ ...p, game: value === "general" ? "" : value }));
+                      }}
+                    >
+                      <SelectTrigger className="rounded-3xl">
+                        <SelectValue placeholder="Pilih kategori" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {productCategories.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="__new__">+ Tambah kategori baru</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">Pilih kategori yang tersedia atau tambahkan kategori baru.</p>
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    <Input
+                      id="modal-new-game"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      placeholder="cth. Free Fire"
+                    />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setCategoryMode("existing");
+                          setNewCategory("");
+                        }}
+                      >
+                        Pilih dari daftar
+                      </Button>
+                      <span className="text-xs text-muted-foreground">Nama kategori akan otomatis disimpan dalam huruf kecil.</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="space-y-2 sm:col-span-2">
+              <div className="space-y-2">
                 <Label htmlFor="modal-description">Deskripsi</Label>
-                <Input id="modal-description" value={productForm.description} onChange={(e) => setProductForm((p) => ({ ...p, description: e.target.value }))} placeholder="Deskripsi singkat produk" />
+                <textarea
+                  id="modal-description"
+                  value={productForm.description}
+                  onChange={(e) => setProductForm((p) => ({ ...p, description: e.target.value }))}
+                  placeholder="Deskripsi singkat produk"
+                  className="min-h-[96px] w-full resize-none rounded-3xl border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                />
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="modal-game">Kategori/Game</Label>
-                <Input id="modal-game" value={productForm.game} onChange={(e) => setProductForm((p) => ({ ...p, game: e.target.value }))} placeholder="mis. mobile legends" />
+            <div className="flex flex-col gap-3 rounded-3xl border border-border/40 bg-background/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Status Produk</p>
+                <p className="text-xs text-muted-foreground">Nonaktifkan bila stok habis atau ingin disembunyikan sementara.</p>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="modal-currency">Mata Uang</Label>
-                <Input id="modal-currency" value={productForm.currency} onChange={(e) => setProductForm((p) => ({ ...p, currency: e.target.value }))} />
-              </div>
-
-              <label className="sm:col-span-2 flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2 text-sm font-medium">
                 <input
                   type="checkbox"
                   className="h-4 w-4 rounded border-border bg-background accent-primary"
                   checked={productForm.active}
                   onChange={(e) => setProductForm((p) => ({ ...p, active: e.target.checked }))}
                 />
-                Aktifkan produk ini
+                {productForm.active ? "Aktif" : "Nonaktif"}
               </label>
             </div>
 

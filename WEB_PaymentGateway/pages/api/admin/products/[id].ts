@@ -10,8 +10,6 @@ const updateSchema = z
     name: z.string().trim().min(3).optional(),
     price: z.coerce.number().positive().optional(),
     description: z.string().trim().optional(),
-    stock: z.coerce.number().int().min(0).optional(),
-    image: z.string().trim().url().optional(),
     game: z.string().trim().optional(),
     currency: z.string().trim().optional(),
     active: z.coerce.boolean().optional()

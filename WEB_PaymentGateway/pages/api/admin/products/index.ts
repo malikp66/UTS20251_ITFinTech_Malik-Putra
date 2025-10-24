@@ -8,7 +8,6 @@ const createSchema = z.object({
   name: z.string().trim().min(3, "Nama produk minimal 3 karakter"),
   price: z.coerce.number().positive("Harga harus lebih dari 0"),
   description: z.string().trim().optional(),
-  image: z.string().trim().url("URL gambar tidak valid").optional(),
   game: z.string().trim().optional(),
   currency: z.string().trim().optional(),
   active: z.coerce.boolean().optional()
@@ -51,7 +50,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         name: payload.name,
         price: payload.price,
         description: payload.description,
-        image: payload.image,
         game: payload.game || "general",
         currency: payload.currency || "IDR",
         active: payload.active ?? true,

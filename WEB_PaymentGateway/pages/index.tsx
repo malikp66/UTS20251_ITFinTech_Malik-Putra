@@ -72,7 +72,6 @@ type Product = {
   sku: string;
   price: number;
   currency: string;
-  image?: string;
   active: boolean;
 };
 
@@ -311,7 +310,6 @@ export default function HomePage() {
         name: product.name,
         game: product.game,
         price: product.price,
-        image: product.image,
         qty: 1
       });
       toast({ title: "Ditambahkan", description: `${product.name} masuk ke keranjang` });
