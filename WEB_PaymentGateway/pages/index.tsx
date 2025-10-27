@@ -9,6 +9,7 @@ import {
   Gamepad2,
   LogIn,
   LogOut,
+  MessagesSquare,
   Minus,
   Plus,
   Rocket,
@@ -64,6 +65,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { SandboxNoticeToast } from "@/components/whatsapp-sandbox-notice";
+import PromoCarousel from "@/components/PromoCarousel"; 
 
 type Product = {
   _id: string;
@@ -261,36 +263,43 @@ export default function HomePage() {
   const [activeGame, setActiveGame] = useState<string>(gameTabs[0].value);
   const [sandboxNoticeOpen, setSandboxNoticeOpen] = useState(false);
   const formattedWhatsAppNumber = "+62 851-2130-8836";
-  const WA_SANDBOX_FLAG_KEY = "waSandboxChatDone";
+  const WA_CHAT_URL = "https://wa.me/message/XVBGCTS22UWMJ1";
+  const SESSION_COOKIE_NAME = "session_token";
+
+  function hasSessionCookie(): boolean {
+    if (typeof document === "undefined") {
+      return false;
+    }
+    try {
+      return document.cookie
+        .split(";")
+        .map(cookie => cookie.trim())
+        .some(cookie => {
+          if (!cookie) return false;
+          const [name, value] = cookie.split("=");
+          return name === SESSION_COOKIE_NAME && Boolean(value);
+        });
+    } catch {
+      return false;
+    }
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      try {
-        const done = typeof window !== "undefined" && localStorage.getItem(WA_SANDBOX_FLAG_KEY) === "1";
-        if (!done) setSandboxNoticeOpen(true);
-      } catch {
+      if (!hasSessionCookie()) {
         setSandboxNoticeOpen(true);
       }
     }, 600);
+
     return () => clearTimeout(timer);
   }, []);
 
   const tryCloseSandbox = () => {
-    try {
-      const done = typeof window !== "undefined" && localStorage.getItem(WA_SANDBOX_FLAG_KEY) === "1";
-      if (!done) return;
-    } catch {
-      return;
-    }
     setSandboxNoticeOpen(false);
   };
 
   const handleOpenWhatsApp = () => {
-    window.open(`https://wa.me/message/XVBGCTS22UWMJ1`, "_blank", "noopener,noreferrer");
-
-    try {
-      localStorage.setItem(WA_SANDBOX_FLAG_KEY, "1");
-    } catch {}
+    window.open(WA_CHAT_URL, "_blank", "noopener,noreferrer");
     setSandboxNoticeOpen(false);
   };
 
@@ -321,10 +330,12 @@ export default function HomePage() {
       aborted = true;
     };
   }, [toast]);
+
   useEffect(() => {
-    const timer = setTimeout(() => setSandboxNoticeOpen(true), 600);
-    return () => clearTimeout(timer);
-  }, []);
+    if (sandboxNoticeOpen && hasSessionCookie()) {
+      setSandboxNoticeOpen(false);
+    }
+  }, [sandboxNoticeOpen, user]);
 
   const filteredProducts = useMemo(
     () =>
@@ -357,6 +368,25 @@ export default function HomePage() {
       router.push("/checkout");
     });
   };
+
+  const slides = [
+    {
+      id: "security",
+      title: "Keamanan Premium",
+      description:
+        "Checkout dilindungi enkripsi Xendit + fraud detection real-time & monitoring nonstop.",
+      icon: Shield,
+      cta: { label: "Mulai Top-up", onClick: handleCheckout },
+    },
+    {
+      id: "wa-sandbox",
+      title: "Aktifkan Notifikasi WhatsApp",
+      description:
+        "Kirim chat ke nomor kami sekali saja agar OTP & update order bisa terkirim otomatis.",
+      icon: MessagesSquare,
+      cta: { label: "Chat WhatsApp", onClick: handleOpenWhatsApp },
+    },
+  ];
 
   return (
     <>
@@ -501,29 +531,7 @@ export default function HomePage() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                <div className="w-full rounded-3xl border border-white/10 bg-black/25 p-5 shadow-[0_12px_28px_rgba(10,15,45,0.35)]">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-3xl bg-primary/10 p-2 text-primary shrink-0">
-                      <Shield className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <h2 className="text-base sm:text-lg font-semibold text-foreground">
-                        Keamanan Premium
-                      </h2>
-                      <p className="text-xs sm:text-sm text-muted-foreground">
-                        Checkout dilindungi enkripsi Xendit dengan fraud detection real-time dan monitoring nonstop.
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    className="mt-4 w-full justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
-                    onClick={handleCheckout}
-                  >
-                    Mulai Top-up
-                    <Rocket className="h-4 w-4" />
-                  </Button>
-                </div>
+                <PromoCarousel slides={slides} />
               </div>
             </div>
           </div>

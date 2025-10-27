@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const response = await fetch("/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload), // <-- sudah termasuk mfaEnabled
+          body: JSON.stringify(payload),
         });
         const json = await response.json().catch(() => ({}));
         if (!response.ok) {
